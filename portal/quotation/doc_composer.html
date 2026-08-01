@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TI-Kitmeer | Document Composer</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{
+  --dk:#0d2137;--teal:#0db8a8;--teal2:#2dd4a0;--med:#5a8cb4;
+  --bg:#eef4f9;--white:#fff;--border:#c8dde8;--text:#0d2137;
+  --sub:#4a6a82;--sh:0 2px 12px rgba(13,33,55,.10);
+  --red:#c84040;--green:#178c6e;
+  --rose:#c0334d;--rose-lt:#e8547a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+.hdr{background:var(--dk);padding:0 36px;display:flex;align-items:center;justify-content:space-between;height:64px;border-bottom:3px solid var(--teal);position:sticky;top:0;z-index:100;}
+.hdr-logos{display:flex;align-items:center;gap:20px;}
+.hdr-div{width:1px;height:40px;background:rgba(255,255,255,.15);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.badge{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);font-weight:700;background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);padding:4px 10px;border-radius:4px;}
+.hdr-link{font-size:11px;color:#a8c8d8;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);padding:6px 12px;border-radius:5px;text-decoration:none;font-weight:600;transition:all .15s;}
+.hdr-link:hover{background:rgba(255,255,255,.14);color:#fff;}
+
+.page{flex:1;padding:32px 40px;max-width:1060px;margin:0 auto;width:100%;}
+.page-title{font-size:22px;font-weight:800;color:var(--dk);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--sub);margin-bottom:28px;}
+
+/* CRM AUTH NOTICE */
+.crm-notice{background:#fff8e0;border:1px solid #e0c060;border-radius:7px;padding:10px 14px;font-size:12px;color:#8a6010;margin-bottom:18px;display:none;}
+.crm-notice a{color:#1a6fa0;text-decoration:underline;}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:2px solid var(--border);}
+.tab{padding:10px 22px;font-size:13px;font-weight:600;color:var(--sub);background:none;border:none;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .15s;font-family:inherit;border-radius:6px 6px 0 0;}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal);background:rgba(13,184,168,.06);}
+.tab:hover:not(.active){color:var(--dk);background:rgba(13,33,55,.04);}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+
+/* Cards */
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px 28px;box-shadow:var(--sh);margin-bottom:18px;}
+.card-head{font-size:14px;font-weight:700;color:var(--dk);margin-bottom:16px;}
+
+/* Template selector */
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tpl-card{border:2px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .15s;background:#fafcfe;}
+.tpl-card:hover{border-color:var(--med);}
+.tpl-card.selected{border-color:var(--teal);background:rgba(13,184,168,.05);}
+.tpl-card input[type=radio]{display:none;}
+.tpl-icon{font-size:24px;margin-bottom:8px;}
+.tpl-name{font-size:13px;font-weight:700;color:var(--dk);margin-bottom:4px;}
+.tpl-desc{font-size:12px;color:var(--sub);line-height:1.5;}
+.tpl-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--teal);color:#fff;padding:2px 7px;border-radius:3px;margin-bottom:6px;}
+
+.elearning-preview{display:none;background:#f0faf8;border:1px solid rgba(13,184,168,.3);border-radius:8px;padding:14px 16px;font-size:12px;color:var(--dk);line-height:1.65;margin-top:12px;}
+.elearning-preview.show{display:block;}
+.elearning-preview strong{color:var(--teal);}
+.elearning-preview a{color:var(--teal);}
+
+/* Fields */
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.fields.three{grid-template-columns:1fr 1fr 1fr;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:5px;}
+.field input,.field select{width:100%;background:#f4f8fc;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;font-family:inherit;transition:border-color .15s;}
+.field input:focus,.field select:focus{border-color:var(--teal);background:var(--white);}
+
+/* CRM client row */
+.crm-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:flex-end;margin-bottom:16px;}
+.crm-row .field{margin-bottom:0;}
+.add-client-btn{white-space:nowrap;background:none;border:1.5px dashed var(--teal);color:var(--teal);border-radius:8px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;height:40px;}
+.add-client-btn:hover{background:rgba(13,184,168,.08);}
+
+/* Editor toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;background:#f4f8fc;border:1.5px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;}
+.tb-btn{background:var(--white);border:1px solid var(--border);border-radius:5px;padding:4px 9px;font-size:12px;cursor:pointer;color:var(--dk);transition:all .12s;font-family:inherit;}
+.tb-btn:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.tb-sep{width:1px;background:var(--border);margin:2px 4px;align-self:stretch;}
+.editor{min-height:340px;background:var(--white);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;padding:16px 18px;font-size:14px;line-height:1.75;color:var(--text);outline:none;overflow-y:auto;}
+.editor:focus{border-color:var(--teal);}
+.editor:empty:before{content:attr(data-placeholder);color:#aac;pointer-events:none;}
+.editor h1{font-size:19px;font-weight:700;margin:10px 0 5px;border-bottom:1px solid var(--teal);padding-bottom:3px;}
+.editor h2{font-size:15px;font-weight:700;margin:8px 0 4px;color:var(--teal);}
+.editor h3{font-size:13px;font-weight:700;margin:7px 0 3px;color:var(--med);}
+.editor table{width:100%;border-collapse:collapse;margin:6px 0;font-size:13px;}
+.editor th{background:var(--dk);color:#fff;padding:5px 7px;font-size:12px;}
+.editor td{padding:4px 7px;border-bottom:1px solid var(--border);}
+.editor tr:nth-child(even) td{background:#f4f8fc;}
+.editor a{color:var(--teal);}
+.editor img{max-width:100%;border-radius:3px;}
+.editor blockquote{margin:5px 0 5px 14px;padding-left:9px;border-left:3px solid var(--teal);color:var(--sub);font-style:italic;}
+
+/* Dropzone */
+.dropzone{border:2px dashed var(--border);border-radius:10px;padding:36px 24px;text-align:center;cursor:pointer;transition:all .2s;background:#fafcfe;position:relative;}
+.dropzone:hover,.dropzone.drag{border-color:var(--teal);background:rgba(13,184,168,.04);}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.dz-ico{font-size:34px;margin-bottom:10px;display:block;}
+.dz-title{font-size:14px;font-weight:700;color:var(--dk);margin-bottom:4px;}
+.dz-sub{font-size:12px;color:var(--sub);}
+.file-chosen{display:none;align-items:center;gap:10px;margin-top:12px;background:#f0faf8;border:1px solid rgba(13,184,168,.3);border-radius:8px;padding:10px 14px;}
+.file-chosen .fc-name{font-size:13px;font-weight:600;color:var(--dk);flex:1;}
+.file-chosen .fc-clear{background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;padding:0 4px;}
+
+/* Link manager */
+.link-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.link-row{display:grid;grid-template-columns:1fr 1fr 30px;gap:8px;align-items:center;}
+.link-row input{background:#f4f8fc;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;font-family:inherit;transition:border-color .15s;width:100%;}
+.link-row input:focus{border-color:var(--teal);}
+.link-row .rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;line-height:1;}
+.add-link-btn{font-size:12px;color:var(--teal);background:none;border:1px dashed var(--teal);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s;}
+.add-link-btn:hover{background:rgba(13,184,168,.08);}
+
+/* Actions */
+.actions{display:flex;align-items:center;gap:12px;margin-top:22px;flex-wrap:wrap;}
+.btn-pdf{background:linear-gradient(135deg,#178c6e,var(--teal));color:#fff;border:none;border-radius:9px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;transition:opacity .15s;}
+.btn-pdf:hover{opacity:.88;}
+.btn-pdf:disabled{opacity:.5;cursor:wait;}
+.btn-preview{background:var(--white);color:var(--dk);border:1.5px solid var(--border);border-radius:9px;padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-preview:hover{border-color:var(--teal);color:var(--teal);}
+.status{font-size:13px;padding:8px 14px;border-radius:7px;display:none;align-items:center;gap:8px;}
+.status.ok{background:rgba(13,184,168,.1);color:var(--green);border:1px solid rgba(13,184,168,.3);}
+.status.err{background:#fff0f0;color:var(--red);border:1px solid #f0c0c0;}
+.preview-wrap{display:none;margin-top:18px;}
+.preview-wrap iframe{width:100%;height:660px;border:1px solid var(--border);border-radius:10px;}
+
+/* DEMO LOG CTA (shown after elearning PDF download) */
+.demo-log-cta{display:none;margin-top:18px;background:linear-gradient(135deg,rgba(192,51,77,.06),rgba(232,84,122,.04));border:1.5px solid rgba(192,51,77,.25);border-radius:12px;padding:18px 22px;}
+.demo-log-cta.show{display:block;}
+.dlc-head{font-size:13px;font-weight:700;color:var(--rose);margin-bottom:6px;}
+.dlc-sub{font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.55;}
+.dlc-actions{display:flex;gap:10px;align-items:center;}
+.btn-log{background:linear-gradient(135deg,var(--rose),var(--rose-lt));color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-log:hover{opacity:.88;}
+.btn-skip{background:none;border:none;color:var(--sub);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;}
+.dlc-logged{display:none;background:#f0faf8;border:1px solid rgba(13,184,168,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green);}
+
+/* ADD CLIENT MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(13,33,55,.45);z-index:300;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.ac-modal{background:var(--white);border-radius:14px;width:100%;max-width:560px;box-shadow:0 8px 32px rgba(13,33,55,.18);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;}
+.ac-head{background:linear-gradient(135deg,var(--dk),#163a5a);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.ac-head h3{font-size:14px;font-weight:700;color:#fff;}
+.ac-cl{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;}
+.ac-cl:hover{color:#fff;}
+.ac-body{padding:22px 24px;overflow-y:auto;}
+.ac-foot{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:#f4f8fc;}
+.ac-row{display:grid;gap:12px;margin-bottom:12px;}
+.ac-row-2{grid-template-columns:1fr 1fr;}
+.ac-row-3{grid-template-columns:1fr 1fr 1fr;}
+.fg label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:5px;}
+.fg input,.fg select,.fg textarea{width:100%;background:#f4f8fc;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;font-family:inherit;transition:border-color .15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal);background:var(--white);}
+.fg textarea{resize:vertical;min-height:55px;}
+.wbtn{padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:none;}
+.wsec{background:transparent;border:1.5px solid var(--border);color:var(--sub);}
+.wsec:hover{border-color:var(--teal);color:var(--dk);}
+.wgrn{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;}
+.wgrn:hover{opacity:.88;}
+.ac-status{font-size:12px;padding:7px 12px;border-radius:6px;display:none;margin-bottom:12px;}
+.ac-status.err{background:#fff0f0;color:var(--red);border:1px solid #f0c0c0;}
+.ac-status.ok{background:#f0faf8;color:var(--green);border:1px solid rgba(13,184,168,.3);}
+
+.foot{background:var(--dk);border-top:1px solid rgba(255,255,255,.08);padding:14px 40px;display:flex;justify-content:space-between;font-size:10px;color:#4a6a82;margin-top:auto;}
+.foot a{color:#5a8aaa;text-decoration:none;}
+
+@media(max-width:700px){
+  .page{padding:20px 14px;}
+  .fields,.fields.three,.tpl-grid{grid-template-columns:1fr;}
+  .link-row{grid-template-columns:1fr 30px;grid-template-rows:auto auto;}
+  .hdr{padding:0 14px;}
+  .crm-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- ══ TI-KITMEER: MODULE INSTRUCTIONS TAB (auto-injected) ══ -->
+<style>
+.ti-help-ribbon{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483000;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#0d2137,#1a6fa0);color:#fff !important;font:700 11.5px/1 'Segoe UI',Arial,sans-serif;padding:6px 16px 8px;border-radius:0 0 10px 10px;text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.22);border-top:none;opacity:.93;transition:all .18s ease;white-space:nowrap}
+.ti-help-ribbon:hover{opacity:1;padding-top:9px;padding-bottom:10px;box-shadow:0 5px 16px rgba(0,0,0,.4);color:#fff}
+.ti-help-ribbon .thr-ic{font-size:13px}
+.ti-help-ribbon .thr-gold{color:#e8c040;font-weight:800}
+@media print{.ti-help-ribbon{display:none !important}}
+@media(max-width:560px){.ti-help-ribbon .thr-mod{display:none}}
+</style>
+<a class="ti-help-ribbon" href="/portal/help/doc-composer.html" target="_blank" title="Open the illustrated instructions for this module"><span class="thr-ic">📖</span><span class="thr-gold">Instructions</span><span class="thr-mod">· Document Composer & Demo Tracker</span></a>
+<!-- ══ END INSTRUCTIONS TAB ══ -->
+
+
+<div class="hdr">
+  <div class="hdr-logos">
+    <a href="https://www.tieducational.com" target="_blank"><img src="/TIlogo.png" alt="TI" style="height:48px;mix-blend-mode:lighten;"></a>
+    <div class="hdr-div"></div>
+    <a href="https://www.kitmeer.com" target="_blank"><img src="/KitmeerLogo.png" alt="Kitmeer" style="height:34px;mix-blend-mode:lighten;"></a>
+  </div>
+  <div class="hdr-right">
+    <div class="badge">Document Composer</div>
+    <a class="hdr-link" href="/portal/quotation/">Quotation Engine →</a>
+    <a class="hdr-link" href="/portal/admin/">← Admin</a>
+  </div>
+</div>
+
+<div class="page">
+  <div class="page-title">Document Composer</div>
+  <div class="page-sub">Generate a branded TI-Kitmeer PDF — complete with cover page, header, footer, and embedded links. E-Learning demo sends are logged automatically to the Demo Tracker.</div>
+
+  <div class="crm-notice" id="crmNotice">
+    ⚠ Not logged into Admin — CRM client selection and demo logging require an active admin session.
+    <a href="/portal/admin/" target="_blank">Sign into Admin</a> then return to this page.
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('paste',this)">✏️ &nbsp;Paste / Type</button>
+    <button class="tab" onclick="switchTab('upload',this)">📎 &nbsp;Upload Word (.docx)</button>
+  </div>
+
+  <!-- ══ TAB: PASTE ══ -->
+  <div class="tab-panel active" id="tab-paste">
+
+    <div class="card">
+      <div class="card-head">📄 Choose Template</div>
+      <div class="tpl-grid">
+        <label class="tpl-card selected" id="tpl-standard-p" onclick="selectTemplate('standard','p')">
+          <input type="radio" name="tpl-p" value="standard" checked>
+          <div class="tpl-icon">📋</div>
+          <div class="tpl-name">Standard Document</div>
+          <div class="tpl-desc">General purpose — letter, memo, proposal, report. Your content with TI-Kitmeer branding.</div>
+        </label>
+        <label class="tpl-card" id="tpl-elearning-p" onclick="selectTemplate('elearning','p')">
+          <input type="radio" name="tpl-p" value="elearning">
+          <div class="tpl-badge">Amatrol</div>
+          <div class="tpl-icon">🎓</div>
+          <div class="tpl-name">E-Learning Demo Access</div>
+          <div class="tpl-desc">Auto-inserts demo activation intro (expiry = today + 21 days) and Amatrol footer links around your content.</div>
+        </label>
+      </div>
+      <div class="elearning-preview" id="elp-p">
+        <strong>Auto-inserted at top:</strong><br>
+        Thank you for your interest in Amatrol&#39;s industry-leading e-learning solutions. Your complimentary demo course access has been activated and is fully available through <strong id="expiry-p">—</strong>. System requirements and course links included.<br><br>
+        <strong>Auto-inserted at bottom:</strong><br>
+        Reach-out paragraph + links to www.learnamatrol.com and www.amatrol.com.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">📋 Document Details</div>
+
+      <!-- CRM Client selector -->
+      <div class="crm-row">
+        <div class="field">
+          <label>Link to CRM Client</label>
+          <select id="p-crm-client" onchange="onCrmClientChange('p')">
+            <option value="">— Select CRM client (optional) —</option>
+          </select>
+        </div>
+        <button class="add-client-btn" onclick="openAddClient()">+ Add New Client</button>
+      </div>
+
+      <div class="fields three">
+        <div class="field"><label>Document Title *</label><input id="p-title" placeholder="e.g. Amatrol Demo Access — Aramco"></div>
+        <div class="field"><label>Subtitle / Subject</label><input id="p-subtitle" placeholder="e.g. Complimentary Trial"></div>
+        <div class="field"><label>Date</label><input id="p-date" placeholder="MM/DD/YYYY" oninput="updateExpiry('p')"></div>
+      </div>
+      <div class="fields">
+        <div class="field"><label>Recipient / Client</label><input id="p-recipient" placeholder="e.g. Saudi Aramco Training Institute"></div>
+        <div class="field"><label>Reference #</label><input id="p-ref" placeholder="e.g. INTL2026-330"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">✏️ Content &nbsp;<span style="font-size:11px;color:var(--sub);font-weight:400">— paste from Word, email, or type directly</span></div>
+      <div class="toolbar">
+        <button class="tb-btn" onclick="fmt('bold')"><b>B</b></button>
+        <button class="tb-btn" onclick="fmt('italic')"><i>I</i></button>
+        <button class="tb-btn" onclick="fmt('underline')"><u>U</u></button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" onclick="fmt('formatBlock','h1')">H1</button>
+        <button class="tb-btn" onclick="fmt('formatBlock','h2')">H2</button>
+        <button class="tb-btn" onclick="fmt('formatBlock','h3')">H3</button>
+        <button class="tb-btn" onclick="fmt('formatBlock','p')">¶</button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" onclick="fmt('insertUnorderedList')">• List</button>
+        <button class="tb-btn" onclick="fmt('insertOrderedList')">1. List</button>
+        <button class="tb-btn" onclick="fmt('formatBlock','blockquote')">❝</button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" onclick="insertTable()">⊞ Table</button>
+        <button class="tb-btn" onclick="fmt('insertHTML','<hr>')">— HR</button>
+        <button class="tb-btn" onclick="insertLink()">🔗 Link</button>
+        <button class="tb-btn" onclick="insertImage()">🖼 Image</button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" onclick="clearEditor()" style="color:var(--red)">✕ Clear</button>
+      </div>
+      <div class="editor" id="editor" contenteditable="true"
+        data-placeholder="Paste or type your content here…"
+        onpaste="handlePaste(event)"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🔗 Additional Reference Links &nbsp;<span style="font-size:11px;color:var(--sub);font-weight:400">— appended as a references section</span></div>
+      <div class="link-list" id="link-list-p"></div>
+      <button class="add-link-btn" onclick="addLink('link-list-p')">+ Add Link</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn-pdf" id="btn-p" onclick="generate('paste')">⬇ &nbsp;Generate &amp; Download PDF</button>
+      <button class="btn-preview" onclick="preview()">👁 Preview</button>
+      <div class="status" id="st-p"></div>
+    </div>
+
+    <!-- Demo Log CTA — shown after successful elearning PDF download -->
+    <div class="demo-log-cta" id="dlc-p">
+      <div class="dlc-head">📧 Log This Demo Send?</div>
+      <div class="dlc-sub">Track this e-learning demo in the Demo Tracker — record the client, recipient, expiry date, and reference number for follow-up.</div>
+      <div class="dlc-actions">
+        <button class="btn-log" onclick="quickLogDemo('p')">Log Demo Send →</button>
+        <button class="btn-skip" onclick="hideDLC('p')">Skip</button>
+      </div>
+      <div class="dlc-logged" id="dlc-p-logged">✓ Demo logged successfully.</div>
+    </div>
+
+    <div class="preview-wrap" id="pw-p"><iframe id="pf-p"></iframe></div>
+  </div>
+
+  <!-- ══ TAB: UPLOAD ══ -->
+  <div class="tab-panel" id="tab-upload">
+
+    <div class="card">
+      <div class="card-head">📄 Choose Template</div>
+      <div class="tpl-grid">
+        <label class="tpl-card selected" id="tpl-standard-u" onclick="selectTemplate('standard','u')">
+          <input type="radio" name="tpl-u" value="standard" checked>
+          <div class="tpl-icon">📋</div>
+          <div class="tpl-name">Standard Document</div>
+          <div class="tpl-desc">Your Word document reformatted with TI-Kitmeer branding.</div>
+        </label>
+        <label class="tpl-card" id="tpl-elearning-u" onclick="selectTemplate('elearning','u')">
+          <input type="radio" name="tpl-u" value="elearning">
+          <div class="tpl-badge">Amatrol</div>
+          <div class="tpl-icon">🎓</div>
+          <div class="tpl-name">E-Learning Demo Access</div>
+          <div class="tpl-desc">Wraps your Word document with the Amatrol demo intro and footer links automatically.</div>
+        </label>
+      </div>
+      <div class="elearning-preview" id="elp-u">
+        <strong>Auto-inserted at top:</strong> Demo activation notice with expiry date (today + 21 days).<br>
+        <strong>Auto-inserted at bottom:</strong> Contact paragraph + www.learnamatrol.com and www.amatrol.com links.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">📋 Document Details</div>
+
+      <!-- CRM Client selector -->
+      <div class="crm-row">
+        <div class="field">
+          <label>Link to CRM Client</label>
+          <select id="u-crm-client" onchange="onCrmClientChange('u')">
+            <option value="">— Select CRM client (optional) —</option>
+          </select>
+        </div>
+        <button class="add-client-btn" onclick="openAddClient()">+ Add New Client</button>
+      </div>
+
+      <div class="fields three">
+        <div class="field"><label>Document Title *</label><input id="u-title" placeholder="e.g. Demo Course Access — KACST"></div>
+        <div class="field"><label>Subtitle / Subject</label><input id="u-subtitle" placeholder="e.g. Mechatronics Track"></div>
+        <div class="field"><label>Date</label><input id="u-date" placeholder="MM/DD/YYYY" oninput="updateExpiry('u')"></div>
+      </div>
+      <div class="fields">
+        <div class="field"><label>Recipient / Client</label><input id="u-recipient" placeholder="e.g. KACST Training Division"></div>
+        <div class="field"><label>Reference #</label><input id="u-ref" placeholder="e.g. INTL2026-331"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">📎 Upload Word Document (.docx)</div>
+      <div class="dropzone" id="dropzone"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleDrop(event)">
+        <input type="file" accept=".docx" id="fileInput" onchange="fileSelected(this)">
+        <span class="dz-ico">📄</span>
+        <div class="dz-title">Click to choose, or drag &amp; drop a .docx file here</div>
+        <div class="dz-sub">Microsoft Word (.docx) · Tables, formatting, and links preserved</div>
+      </div>
+      <div class="file-chosen" id="file-chosen">
+        <span style="font-size:22px;">📄</span>
+        <span class="fc-name" id="fc-name"></span>
+        <button class="fc-clear" onclick="clearFile()">✕</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🔗 Additional Reference Links</div>
+      <div class="link-list" id="link-list-u"></div>
+      <button class="add-link-btn" onclick="addLink('link-list-u')">+ Add Link</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn-pdf" id="btn-u" onclick="generate('upload')">⬇ &nbsp;Convert &amp; Download PDF</button>
+      <div class="status" id="st-u"></div>
+    </div>
+
+    <!-- Demo Log CTA for upload tab -->
+    <div class="demo-log-cta" id="dlc-u">
+      <div class="dlc-head">📧 Log This Demo Send?</div>
+      <div class="dlc-sub">Track this e-learning demo in the Demo Tracker — record the client, recipient, and expiry for follow-up.</div>
+      <div class="dlc-actions">
+        <button class="btn-log" onclick="quickLogDemo('u')">Log Demo Send →</button>
+        <button class="btn-skip" onclick="hideDLC('u')">Skip</button>
+      </div>
+      <div class="dlc-logged" id="dlc-u-logged">✓ Demo logged successfully.</div>
+    </div>
+
+    <p style="font-size:11px;color:var(--sub);margin-top:10px;">Complex Word layouts (text boxes, multi-column sections) may need minor cleanup after conversion. Standard paragraph styles work best.</p>
+  </div>
+
+</div>
+
+<!-- ADD NEW CLIENT MODAL -->
+<div class="modal-bg" id="addClientModal" onclick="if(event.target===this)closeAddClient()">
+  <div class="ac-modal">
+    <div class="ac-head">
+      <h3>👥 Add New Client to CRM</h3>
+      <button class="ac-cl" onclick="closeAddClient()">✕</button>
+    </div>
+    <div class="ac-body">
+      <div class="ac-status" id="acStatus"></div>
+      <div class="ac-row ac-row-2">
+        <div class="fg"><label>Company Name *</label><input id="ac-name" placeholder="e.g. Saudi Aramco"></div>
+        <div class="fg"><label>Arabic Name</label><input id="ac-namear" placeholder="اسم الشركة"></div>
+      </div>
+      <div class="ac-row ac-row-3">
+        <div class="fg">
+          <label>Country</label>
+          <select id="ac-country">
+            <option value="">--</option>
+            <option>Saudi Arabia</option><option>UAE</option><option>Qatar</option>
+            <option>Kuwait</option><option>Bahrain</option><option>Oman</option>
+            <option>Egypt</option><option>Jordan</option><option>Libya</option>
+            <option>Morocco</option><option>Algeria</option><option>Lebanon</option>
+            <option>Yemen</option><option>United States</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Sector</label>
+          <select id="ac-sector">
+            <option value="">--</option>
+            <option>Education</option><option>Oil &amp; Gas</option><option>Government</option>
+            <option>Industrial</option><option>Defense</option><option>Healthcare</option>
+            <option>Utilities</option><option>Reseller</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fg"><label>Main Phone</label><input id="ac-phone" placeholder="+966..."></div>
+      </div>
+      <div class="ac-row ac-row-2">
+        <div class="fg"><label>Website</label><input id="ac-website" placeholder="https://..."></div>
+        <div class="fg"><label>Address</label><input id="ac-address" placeholder="City, Country"></div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="ac-notes" placeholder="Optional notes…"></textarea></div>
+    </div>
+    <div class="ac-foot">
+      <button class="wbtn wsec" onclick="closeAddClient()">Cancel</button>
+      <button class="wbtn wgrn" id="acSaveBtn" onclick="submitAddClient()">✓ Save &amp; Select Client</button>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span>&copy; 2026 Technologies International LLC &amp; Kitmeer · ti-kitmeer.com</span>
+  <span><a href="mailto:support@tieducational.com">Contact Us</a></span>
+</div>
+
+<script>
+var selectedFile = null;
+var currentTemplate = { p: 'standard', u: 'standard' };
+var AUTH = null;
+var CRM_CLIENTS = [];
+var lastGenMeta = {}; // stores last gen params for demo log
+
+// ── Auth via server session (no credentials in page source) ──────────────────
+(function(){
+  fetch('/portal/admin/auth_status.php',{credentials:'same-origin'})
+    .then(function(r){return r.json();})
+    .then(function(r){
+      if(r.ok){ AUTH={user:r.user,name:r.name}; }
+      else { document.getElementById('crmNotice').style.display='block'; }
+    })
+    .catch(function(){ document.getElementById('crmNotice').style.display='block'; });
+})();
+
+function crmApi(action,data){
+  if(!AUTH) return Promise.reject(new Error('Not authenticated'));
+  return fetch('/portal/admin/clients-db-api.php',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    credentials:'same-origin',
+    body:JSON.stringify(Object.assign({action:action},data||{}))
+  }).then(function(r){return r.json();});
+}
+
+function loadCrmClients(){
+  crmApi('list_clients').then(function(r){
+    if(r.ok){
+      CRM_CLIENTS=r.clients||[];
+      populateCrmDropdowns();
+    }
+  }).catch(function(){});
+}
+
+function populateCrmDropdowns(){
+  ['p-crm-client','u-crm-client'].forEach(function(selId){
+    var sel=document.getElementById(selId);
+    var cur=sel.value;
+    while(sel.options.length>1) sel.remove(1);
+    CRM_CLIENTS.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(c){
+      var o=document.createElement('option');
+      o.value=c.id; o.textContent=c.name+(c.country?' ('+c.country+')':'');
+      sel.appendChild(o);
+    });
+    if(cur) sel.value=cur;
+  });
+}
+
+function onCrmClientChange(tab){
+  var id=document.getElementById(tab+'-crm-client').value;
+  if(!id) return;
+  var c=CRM_CLIENTS.find(function(x){return x.id===id;}); if(!c) return;
+  // Auto-fill recipient field from primary contact
+  var primary=(c.contacts||[]).find(function(x){return x.isPrimary;})|| (c.contacts||[])[0];
+  var recipEl=document.getElementById(tab+'-recipient');
+  if(recipEl && !recipEl.value) recipEl.value=primary?primary.name:c.name;
+}
+
+// ── Init dates ────────────────────────────────────────────────────────────────
+(function(){
+  var d=new Date();
+  var ds=pad(d.getMonth()+1)+'/'+pad(d.getDate())+'/'+d.getFullYear();
+  document.getElementById('p-date').value=ds;
+  document.getElementById('u-date').value=ds;
+  updateExpiry('p'); updateExpiry('u');
+})();
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function updateExpiry(tab){
+  var raw=document.getElementById(tab+'-date').value.trim();
+  var parts=raw.split('/');
+  var d=parts.length===3?new Date(+parts[2],+parts[0]-1,+parts[1]):new Date();
+  if(isNaN(d)) d=new Date();
+  d.setDate(d.getDate()+21);
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var str=months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+  var el=document.getElementById('expiry-'+tab);
+  if(el) el.textContent=str;
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+function selectTemplate(tpl,tab){
+  currentTemplate[tab]=tpl;
+  document.getElementById('tpl-standard-'+tab).classList.toggle('selected',tpl==='standard');
+  document.getElementById('tpl-elearning-'+tab).classList.toggle('selected',tpl==='elearning');
+  var prev=document.getElementById('elp-'+tab);
+  if(prev) prev.classList.toggle('show',tpl==='elearning');
+}
+
+// ── Rich text editor ──────────────────────────────────────────────────────────
+function fmt(cmd,val){ document.getElementById('editor').focus(); document.execCommand(cmd,false,val||null); }
+function insertLink(){ var url=prompt('URL:','https://'); if(!url)return; var txt=prompt('Display text:',url); fmt('insertHTML','<a href="'+url+'">'+(txt||url)+'</a>'); }
+function insertImage(){ var url=prompt('Image URL:'); if(url) fmt('insertHTML','<img src="'+url+'" style="max-width:100%;">'); }
+function insertTable(){
+  var rows=parseInt(prompt('Rows:','3'))||3; var cols=parseInt(prompt('Columns:','3'))||3;
+  var h='<table><thead><tr>'+Array(cols).fill(0).map(function(_,i){return'<th>Header '+(i+1)+'</th>';}).join('')+'</tr></thead><tbody>';
+  for(var r=0;r<rows-1;r++) h+='<tr>'+Array(cols).fill('<td>&nbsp;</td>').join('')+'</tr>';
+  h+='</tbody></table><p></p>'; fmt('insertHTML',h);
+}
+function clearEditor(){ if(confirm('Clear all content?')) document.getElementById('editor').innerHTML=''; }
+function handlePaste(e){
+  e.preventDefault();
+  var html='';
+  if(e.clipboardData.types.indexOf('text/html')!==-1){
+    html=e.clipboardData.getData('text/html');
+    html=html.replace(/<meta[^>]*>/gi,'').replace(/<!--.*?-->/gis,'')
+             .replace(/<style[^>]*>.*?<\/style>/gis,'').replace(/\s*class="Mso[^"]*"/gi,'')
+             .replace(/\s*style="mso-[^"]*"/gi,'').replace(/<o:[^>]*>.*?<\/o:[^>]*>/gis,'')
+             .replace(/<\/?(o:|w:|m:)[^>]*>/gi,'');
+  } else {
+    html=e.clipboardData.getData('text/plain')
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .split('\n').map(function(l){return'<p>'+(l||'<br>')+'</p>';}).join('');
+  }
+  document.execCommand('insertHTML',false,html);
+}
+
+function addLink(listId){
+  var row=document.createElement('div'); row.className='link-row';
+  row.innerHTML='<input type="text" placeholder="Label / Description" class="lk-label">'
+               +'<input type="url" placeholder="https://..." class="lk-url">'
+               +'<button class="rm" onclick="this.parentNode.remove()">✕</button>';
+  document.getElementById(listId).appendChild(row);
+}
+function getLinks(listId){
+  var links=[];
+  document.getElementById(listId).querySelectorAll('.link-row').forEach(function(r){
+    var label=r.querySelector('.lk-label').value.trim();
+    var url=r.querySelector('.lk-url').value.trim();
+    if(url) links.push({label:label||url,url:url});
+  });
+  return links;
+}
+
+function fileSelected(inp){ if(!inp.files||!inp.files[0])return; selectedFile=inp.files[0]; document.getElementById('fc-name').textContent=selectedFile.name; document.getElementById('file-chosen').style.display='flex'; }
+function handleDrop(e){ e.preventDefault(); document.getElementById('dropzone').classList.remove('drag'); var f=e.dataTransfer.files[0]; if(!f)return; if(!f.name.toLowerCase().endsWith('.docx')){alert('Please upload a .docx file.');return;} selectedFile=f; document.getElementById('fc-name').textContent=f.name; document.getElementById('file-chosen').style.display='flex'; }
+function clearFile(){ selectedFile=null; document.getElementById('fileInput').value=''; document.getElementById('file-chosen').style.display='none'; }
+
+function setStatus(id,msg,type){ var el=document.getElementById('st-'+id); el.textContent=msg; el.className='status '+(type==='ok'?'ok':'err'); el.style.display=msg?'flex':'none'; }
+
+function getMeta(prefix){
+  return {
+    title:    document.getElementById(prefix+'title').value.trim()||'Document',
+    subtitle: document.getElementById(prefix+'subtitle').value.trim(),
+    docDate:  document.getElementById(prefix+'date').value.trim(),
+    recipient:document.getElementById(prefix+'recipient').value.trim()
+  };
+}
+function getCrmClientId(tab){
+  var sel=document.getElementById(tab+'-crm-client');
+  return sel ? sel.value : '';
+}
+
+function generate(mode){
+  if(mode==='paste'){
+    var meta=getMeta('p-');
+    var html=document.getElementById('editor').innerHTML;
+    if(!html||html==='<br>'||!html.trim()){setStatus('p','Please add some content first.','err');return;}
+    var links=getLinks('link-list-p');
+    var tpl=currentTemplate.p;
+    var btn=document.getElementById('btn-p');
+    btn.disabled=true; btn.textContent='⏳ Generating…';
+    setStatus('p','Building PDF…','ok');
+    hideDLC('p');
+
+    lastGenMeta.p={title:meta.title,subtitle:meta.subtitle,docDate:meta.docDate,recipient:meta.recipient,ref:document.getElementById('p-ref').value.trim(),template:tpl,crmClientId:getCrmClientId('p')};
+
+    fetch('./doc_composer.php?action=render_pdf',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({title:meta.title,subtitle:meta.subtitle,docDate:meta.docDate,recipient:meta.recipient,ref:document.getElementById('p-ref').value.trim(),html:html,template:tpl,links:links})
+    })
+    .then(function(r){ if(!r.ok) return r.json().then(function(j){throw new Error(j.error||'Server error '+r.status);}); return r.blob(); })
+    .then(function(blob){
+      if(blob.type==='application/json'||blob.size<100){ blob.text().then(function(t){setStatus('p','Error: '+t,'err');}); return; }
+      downloadBlob(blob,meta.title);
+      setStatus('p','✓ PDF downloaded!','ok');
+      if(tpl==='elearning') showDLC('p');
+    })
+    .catch(function(err){setStatus('p','✗ '+err.message,'err');})
+    .finally(function(){btn.disabled=false; btn.innerHTML='⬇ &nbsp;Generate &amp; Download PDF';});
+  }
+  else if(mode==='upload'){
+    if(!selectedFile){setStatus('u','Please select a .docx file first.','err');return;}
+    var meta=getMeta('u-');
+    var links=getLinks('link-list-u');
+    var tpl=currentTemplate.u;
+    var fd=new FormData();
+    fd.append('file',selectedFile);
+    fd.append('title',meta.title); fd.append('subtitle',meta.subtitle);
+    fd.append('docDate',meta.docDate); fd.append('recipient',meta.recipient);
+    fd.append('ref',document.getElementById('u-ref').value.trim());
+    fd.append('template',tpl); fd.append('links',JSON.stringify(links));
+    var btn=document.getElementById('btn-u');
+    btn.disabled=true; btn.textContent='⏳ Converting…';
+    setStatus('u','Converting document…','ok');
+    hideDLC('u');
+
+    lastGenMeta.u={title:meta.title,subtitle:meta.subtitle,docDate:meta.docDate,recipient:meta.recipient,ref:document.getElementById('u-ref').value.trim(),template:tpl,crmClientId:getCrmClientId('u')};
+
+    fetch('./doc_composer.php?action=convert_docx',{method:'POST',body:fd})
+    .then(function(r){ if(!r.ok) return r.json().then(function(j){throw new Error(j.error||'Server error '+r.status);}); return r.blob(); })
+    .then(function(blob){
+      if(blob.type==='application/json'||blob.size<100){ blob.text().then(function(t){setStatus('u','Error: '+t,'err');}); return; }
+      downloadBlob(blob,meta.title);
+      setStatus('u','✓ PDF downloaded!','ok');
+      if(tpl==='elearning') showDLC('u');
+    })
+    .catch(function(err){setStatus('u','✗ '+err.message,'err');})
+    .finally(function(){btn.disabled=false; btn.innerHTML='⬇ &nbsp;Convert &amp; Download PDF';});
+  }
+}
+
+function preview(){
+  var meta=getMeta('p-');
+  var html=document.getElementById('editor').innerHTML;
+  if(!html||!html.trim()){setStatus('p','Add content first.','err');return;}
+  var links=getLinks('link-list-p'); var tpl=currentTemplate.p;
+  setStatus('p','Building preview…','ok');
+  fetch('./doc_composer.php?action=render_pdf',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({title:meta.title,subtitle:meta.subtitle,docDate:meta.docDate,recipient:meta.recipient,html:html,template:tpl,links:links})
+  })
+  .then(function(r){ if(!r.ok) return r.json().then(function(j){throw new Error(j.error||'Server error');}); return r.blob(); })
+  .then(function(blob){ var url=URL.createObjectURL(blob); document.getElementById('pf-p').src=url; document.getElementById('pw-p').style.display='block'; setStatus('p','✓ Preview ready below.','ok'); })
+  .catch(function(err){setStatus('p','✗ '+err.message,'err');});
+}
+
+function downloadBlob(blob,title){
+  var url=URL.createObjectURL(blob); var a=document.createElement('a');
+  a.href=url; a.download=(title.replace(/[^a-z0-9]/gi,'_')||'Document')+'.pdf';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},3000);
+}
+
+// ── Demo Log CTA ──────────────────────────────────────────────────────────────
+function showDLC(tab){
+  var el=document.getElementById('dlc-'+tab);
+  if(el) el.classList.add('show');
+  document.getElementById('dlc-'+tab+'-logged').style.display='none';
+}
+function hideDLC(tab){
+  var el=document.getElementById('dlc-'+tab);
+  if(el) el.classList.remove('show');
+}
+function quickLogDemo(tab){
+  if(!AUTH){ alert('You must be signed into Admin to log demos.\n\nSign in at /portal/admin/login.php in another tab, then reload this page.'); return; }
+  var meta=lastGenMeta[tab]||{};
+  var clientId=meta.crmClientId||'';
+  var c=CRM_CLIENTS.find(function(x){return x.id===clientId;})||{};
+  var primary=(c.contacts||[]).find(function(x){return x.isPrimary;})|| (c.contacts||[])[0];
+  var data={
+    client_id:clientId,
+    client_name:c.name||meta.recipient||'',
+    recipient:primary?primary.email:(meta.recipient||''),
+    recipient_name:primary?primary.name:(meta.recipient||''),
+    title:meta.title||'',
+    ref:meta.ref||'',
+    template:meta.template||'elearning',
+    date_sent:meta.docDate||'',
+    notes:''
+  };
+  crmApi('add_demo',data).then(function(r){
+    if(r.ok){
+      document.getElementById('dlc-'+tab+'-logged').style.display='block';
+      document.querySelector('#dlc-'+tab+' .dlc-actions').style.display='none';
+    } else {
+      alert('Could not log demo: '+(r.error||'Unknown error'));
+    }
+  }).catch(function(e){ alert('Error: '+e.message); });
+}
+
+// ── Add Client Modal ──────────────────────────────────────────────────────────
+function openAddClient(){
+  ['ac-name','ac-namear','ac-phone','ac-website','ac-address','ac-notes'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('ac-country').value='';
+  document.getElementById('ac-sector').value='';
+  document.getElementById('acStatus').style.display='none';
+  document.getElementById('addClientModal').classList.add('open');
+}
+function closeAddClient(){ document.getElementById('addClientModal').classList.remove('open'); }
+function submitAddClient(){
+  var name=document.getElementById('ac-name').value.trim();
+  if(!name){ setACStatus('Company name is required.','err'); return; }
+  var btn=document.getElementById('acSaveBtn');
+  btn.disabled=true; btn.textContent='Saving…';
+  var data={
+    name:name, nameAr:document.getElementById('ac-namear').value.trim(),
+    country:document.getElementById('ac-country').value,
+    sector:document.getElementById('ac-sector').value,
+    phone:document.getElementById('ac-phone').value.trim(),
+    website:document.getElementById('ac-website').value.trim(),
+    address:document.getElementById('ac-address').value.trim(),
+    notes:document.getElementById('ac-notes').value.trim(),
+    contacts:[]
+  };
+  crmApi('add_client',data).then(function(r){
+    if(r.ok){
+      CRM_CLIENTS.push(r.client);
+      populateCrmDropdowns();
+      // Auto-select in both dropdowns
+      ['p-crm-client','u-crm-client'].forEach(function(selId){
+        document.getElementById(selId).value=r.client.id;
+      });
+      closeAddClient();
+    } else {
+      setACStatus('Error: '+(r.error||'?'),'err');
+    }
+  }).catch(function(e){ setACStatus('Error: '+e.message,'err'); })
+  .finally(function(){ btn.disabled=false; btn.textContent='✓ Save & Select Client'; });
+}
+function setACStatus(msg,type){
+  var el=document.getElementById('acStatus');
+  el.textContent=msg; el.className='ac-status '+type; el.style.display='block';
+}
+</script>
+</body>
+</html>

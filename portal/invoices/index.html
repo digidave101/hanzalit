@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TI Invoice Module v12</title>
+<style>
+/* ===================== SCREEN STYLES ===================== */
+:root {
+  --teal: #0a7b8a;
+  --teal-dark: #065f6b;
+  --teal-light: #e8f4f6;
+  --gray-100: #f5f5f5;
+  --gray-200: #e0e0e0;
+  --gray-600: #666;
+  --gray-800: #333;
+  --gold: #f0a500;
+  --red: #c0392b;
+  --green: #27ae60;
+  --white: #fff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; font-size: 13px; background: #f0f0f0; color: var(--gray-800); }
+
+/* Layout */
+#app { display: flex; height: 100vh; overflow: hidden; }
+#sidebar { width: 280px; min-width: 280px; max-width: 280px; background: #1a1a2e; color: #ccc; display: flex; flex-direction: column; overflow: hidden; }
+#main { flex: 1; min-width: 0; display: block; overflow-y: auto; }
+
+/* Sidebar */
+#sidebar-header { background: var(--teal-dark); padding: 16px; color: white; }
+#sidebar-header h2 { font-size: 15px; color: white; }
+#sidebar-header p { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+#sidebar-toolbar { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 6px; }
+.btn-sm { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; }
+.btn-teal { background: var(--teal); color: white; }
+.btn-teal:hover { background: var(--teal-dark); }
+.btn-gray { background: rgba(255,255,255,0.15); color: white; }
+.btn-gray:hover { background: rgba(255,255,255,0.25); }
+#inv-search { width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: white; font-size: 12px; margin: 8px; width: calc(100% - 16px); }
+#inv-search::placeholder { color: rgba(255,255,255,0.4); }
+#inv-list { flex: 1; overflow-y: auto; padding: 6px; }
+.inv-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 4px; border: 1px solid transparent; transition: all 0.15s; }
+.inv-item:hover { background: rgba(255,255,255,0.08); }
+.inv-item.active { background: rgba(10,123,138,0.3); border-color: var(--teal); }
+.inv-item-num { font-size: 12px; font-weight: 700; color: white; }
+.inv-item-client { font-size: 11px; color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-item-status { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-top: 4px; font-weight: 600; }
+.status-draft { background: rgba(240,165,0,0.2); color: #f0a500; }
+.status-issued { background: rgba(10,123,138,0.2); color: var(--teal); }
+.status-paid { background: rgba(39,174,96,0.2); color: var(--green); }
+
+/* Main / Welcome */
+#welcome { padding: 40px; text-align: center; color: #888; }
+#welcome h3 { font-size: 22px; color: var(--teal); margin-bottom: 12px; }
+#welcome p { color: #666; }
+.stat-row { display: flex; gap: 16px; justify-content: center; margin-top: 30px; }
+.stat-card { background: white; border-radius: 8px; padding: 20px 30px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.stat-num { font-size: 28px; font-weight: 700; color: var(--teal); }
+.stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+.api-status { font-size: 12px; margin-top: 16px; }
+
+/* Editor */
+#inv-editor { display: none; }
+#editor-toolbar { background: white; border-bottom: 2px solid var(--teal); padding: 10px 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; }
+#editor-toolbar h3 { flex: 1; font-size: 15px; color: var(--teal-dark); }
+.btn { padding: 7px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.btn-save { background: var(--teal); color: white; }
+.btn-save:hover { background: var(--teal-dark); }
+.btn-print { background: var(--gray-800); color: white; }
+.btn-print:hover { background: #111; }
+.btn-pdf { background: var(--red); color: white; }
+.btn-pdf:hover { background: #a02020; }
+.btn-danger { background: var(--red); color: white; }
+.btn-danger:hover { background: #a02020; }
+#editor-body { padding: 20px; }
+
+/* Form sections */
+.form-section { background: white; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.form-section h4 { font-size: 13px; font-weight: 700; color: var(--teal-dark); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
+.form-row { display: flex; gap: 12px; margin-bottom: 10px; }
+.form-group { flex: 1; }
+.form-group label { display: block; font-size: 11px; color: var(--gray-600); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 7px 10px; border: 1px solid var(--gray-200); border-radius: 4px; font-size: 12px; font-family: Arial, sans-serif; }
+.form-group textarea { resize: vertical; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--teal); }
+
+/* Line items table */
+.line-items-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.line-items-table th { background: var(--teal); color: white; padding: 8px 6px; text-align: left; font-size: 11px; }
+.line-items-table td { padding: 6px; border-bottom: 1px solid var(--gray-200); vertical-align: middle; }
+.line-items-table tr:hover td { background: var(--teal-light); }
+.line-items-table input { width: 100%; border: none; background: transparent; font-size: 12px; padding: 2px 4px; }
+.line-items-table input:focus { outline: 1px solid var(--teal); background: white; border-radius: 2px; }
+
+/* TI-MAIN-Q bar */
+.main-q-toggle { display: flex; align-items: center; gap: 10px; background: #fff8e1; border: 1px solid #f0c060; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; }
+.main-q-toggle label { font-size: 12px; font-weight: 600; color: #8a6000; cursor: pointer; }
+#main-q-section { background: #fffdf2; border: 1px solid #f0c060; border-radius: 6px; padding: 14px; margin-bottom: 12px; display: none; }
+#main-q-section h5 { font-size: 12px; font-weight: 700; color: #8a6000; margin-bottom: 10px; }
+
+/* Totals */
+.totals-section { background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.totals-row { display: flex; justify-content: flex-end; gap: 20px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--gray-200); }
+.totals-row:last-child { border-bottom: none; font-weight: 700; font-size: 14px; color: var(--teal-dark); }
+.totals-label { min-width: 160px; text-align: right; font-size: 12px; color: var(--gray-600); }
+.totals-value { min-width: 120px; text-align: right; font-size: 13px; }
+
+/* Toast */
+#toast { position: fixed; bottom: 20px; right: 20px; background: var(--gray-800); color: white; padding: 12px 20px; border-radius: 6px; font-size: 13px; display: none; z-index: 9999; }
+#toast.success { background: var(--green); }
+#toast.error { background: var(--red); }
+
+/* Unsaved warning */
+#unsaved-bar { background: #fff3cd; border-bottom: 2px solid var(--gold); padding: 8px 20px; font-size: 12px; color: #856404; display: none; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: white; border-radius: 8px; padding: 24px; width: 480px; max-width: 90vw; }
+.modal h3 { font-size: 16px; color: var(--teal-dark); margin-bottom: 16px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+/* ===================== PRINT STYLES ===================== */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body, html { margin: 0; padding: 0; background: white; }
+  #app, #sidebar, #main, #inv-editor, #editor-toolbar, #editor-body, #unsaved-bar { display: block !important; border: none !important; box-shadow: none !important; overflow: visible !important; }
+  #sidebar { display: none !important; }
+  #main { width: 100% !important; }
+  #editor-toolbar, #editor-body, #unsaved-bar { display: none !important; }
+  #welcome { display: none !important; }
+  #inv-editor { display: block !important; }
+  #print-area { display: block !important; }
+  .no-print { display: none !important; }
+
+  /* Page setup */
+  @page {
+    size: letter;
+    margin: 0.5in 0.5in 0.7in 0.5in;
+  }
+
+  /* The key: use table thead/tfoot for repeating headers/footers */
+  .print-table { width: 100%; border-collapse: collapse; }
+  .print-table thead td { padding-bottom: 10px; }
+  .print-table tfoot td { padding-top: 6px; }
+  .print-table thead { display: table-header-group; }
+  .print-table tfoot { display: table-footer-group; }
+  .print-table tbody { display: table-row-group; }
+
+  /* Page number via CSS counter */
+  @page { counter-increment: page; }
+  /* page numbers handled by JS */
+}
+</style>
+</head>
+<body>
+<!-- ══ TI-KITMEER: MODULE INSTRUCTIONS TAB (auto-injected) ══ -->
+<style>
+.ti-help-ribbon{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483000;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#0d2137,#1a6fa0);color:#fff !important;font:700 11.5px/1 'Segoe UI',Arial,sans-serif;padding:6px 16px 8px;border-radius:0 0 10px 10px;text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.22);border-top:none;opacity:.93;transition:all .18s ease;white-space:nowrap}
+.ti-help-ribbon:hover{opacity:1;padding-top:9px;padding-bottom:10px;box-shadow:0 5px 16px rgba(0,0,0,.4);color:#fff}
+.ti-help-ribbon .thr-ic{font-size:13px}
+.ti-help-ribbon .thr-gold{color:#e8c040;font-weight:800}
+@media print{.ti-help-ribbon{display:none !important}}
+@media(max-width:560px){.ti-help-ribbon .thr-mod{display:none}}
+</style>
+<a class="ti-help-ribbon" href="/portal/help/invoices.html" target="_blank" title="Open the illustrated instructions for this module"><span class="thr-ic">📖</span><span class="thr-gold">Instructions</span><span class="thr-mod">· Invoice & Document Suite</span></a>
+<!-- ══ END INSTRUCTIONS TAB ══ -->
+
+
+<div id="toast"></div>
+
+<!-- NEW INVOICE MODAL -->
+<div class="modal-overlay" id="new-inv-modal">
+  <div class="modal" style="width:520px;">
+    <h3>Create New Invoice</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Invoice Number</label>
+        <input type="text" id="new-inv-num" placeholder="INV-2026-XXXX">
+      </div>
+      <div class="form-group" style="flex:0 0 130px;">
+        <label>Status</label>
+        <select id="new-inv-status">
+          <option value="draft">Draft</option>
+          <option value="issued">Issued</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;position:relative;">
+      <label>Link to Quote <span style="font-weight:400;color:#999;">(type to search)</span></label>
+      <input type="text" id="new-inv-quote" placeholder="Type quote number or client name..." autocomplete="off" oninput="filterQuoteDropdown(this.value)" onfocus="filterQuoteDropdown(this.value)" style="width:100%;box-sizing:border-box;">
+      <div id="quote-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #0a7b8a;border-radius:0 0 6px 6px;max-height:220px;overflow-y:auto;z-index:2000;box-shadow:0 4px 12px rgba(0,0,0,0.15);"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>Client Name <span style="font-weight:400;color:#0a7b8a;font-size:10px;" id="client-autofill-note"></span></label>
+      <input type="text" id="new-inv-client" placeholder="Auto-filled from quote, or type manually">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal(&#39;new-inv-modal&#39;)" style="background:#ddd;color:#333;">Cancel</button>
+      <button class="btn btn-save" onclick="createInvoice()">Create Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- HS CODE LOOKUP MODAL -->
+<div class="modal-overlay" id="hs-modal">
+  <div class="modal" style="width:600px;">
+    <h3>HS / ECCN Code Lookup</h3>
+    <input type="text" id="hs-search-input" placeholder="Search by description or code..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;margin-bottom:12px;">
+    <div id="hs-results" style="max-height:300px;overflow-y:auto;"></div>
+    <div class="modal-footer">
+      <button class="btn" style="background:#ddd;color:#333;" onclick="closeModal(&#39;hs-modal&#39;)">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h2>📄 Invoices</h2>
+      <p id="sidebar-user">dhanzal</p>
+    </div>
+    <div id="sidebar-toolbar">
+      <button class="btn-sm btn-teal" onclick="openNewModal()">+ New</button>
+      <button class="btn-sm btn-gray" onclick="loadInvoices()">↻ Refresh</button>
+    </div>
+    <input type="text" id="inv-search" placeholder="Search invoices..." oninput="filterInvoices(this.value)">
+    <div id="inv-list">
+    <div class="inv-item " onclick="openInvoice(2)" data-id="2">
+      <div class="inv-item-num">INV-2026-0002</div>
+      <div class="inv-item-client">Saudi Aramco / Aramco Americas</div>
+      <div><span class="inv-item-status status-draft">draft</span></div>
+    </div>
+  
+    <div class="inv-item " onclick="openInvoice(1)" data-id="1">
+      <div class="inv-item-num">INV-2026-0001</div>
+      <div class="inv-item-client">Saudi Aramco / Aramco Americas</div>
+      <div><span class="inv-item-status status-draft">draft</span></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="unsaved-bar">⚠ You have unsaved changes. Click Save to preserve them.</div>
+
+    <!-- WELCOME -->
+    <div id="welcome">
+      <h3>TI Invoice Manager</h3>
+      <p>Select an invoice from the sidebar or create a new one.</p>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num" id="stat-total">2</div><div class="stat-label">Total Invoices</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-draft">2</div><div class="stat-label">Drafts</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-issued">0</div><div class="stat-label">Issued</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-paid">0</div><div class="stat-label">Paid</div></div>
+      </div>
+      <div class="api-status" id="api-status"><span style="color:var(--green);">✓ API OK · dhanzal</span></div>
+      <div style="margin-top:20px;font-size:12px;color:#aaa;">v12d ✓</div>
+    </div>
+
+    <!-- EDITOR -->
+    <div id="inv-editor">
+      <div id="editor-toolbar" class="no-print">
+        <h3 id="editor-title">Invoice</h3>
+        <select id="inv-status-select" style="padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+          <option value="draft">Draft</option>
+          <option value="issued">Issued</option>
+          <option value="paid">Paid</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-save" onclick="saveInvoice()">💾 Save</button>
+        <button class="btn btn-print" onclick="printInvoice()">🖨 Print</button>
+        <button class="btn btn-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
+        <button class="btn" style="background:#0a7b8a22;color:#0a7b8a;" onclick="openHsModal()">🔍 HS Codes</button>
+        <a class="btn" href="#" id="pl-link" target="_blank" style="background:#1a6b5a;color:white;text-decoration:none;">📦 Packing List</a>
+        <a class="btn" href="#" id="coo-link" target="_blank" style="background:#8b6914;color:white;text-decoration:none;">📋 Cert. of Origin</a>
+        <button class="btn btn-danger" onclick="deleteInvoice()" style="margin-left:auto;">🗑 Delete</button>
+      </div>
+      <div id="editor-body">
+
+        <!-- Header Info -->
+        <div class="form-section no-print">
+          <h4>Invoice Header</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Invoice Number</label>
+              <input type="text" id="f-inv-num" placeholder="INV-2026-0001">
+            </div>
+            <div class="form-group">
+              <label>Invoice Date</label>
+              <input type="date" id="f-inv-date">
+            </div>
+            <div class="form-group">
+              <label>Client PO Number <span style="color:var(--teal);font-size:10px;">(prints on every page)</span></label>
+              <input type="text" id="f-po-num" placeholder="e.g. 4508030838">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Quote / Project Reference</label>
+              <input type="text" id="f-quote-num" placeholder="INTL2026-335-R1">
+            </div>
+            <div class="form-group">
+              <label>Payment Terms</label>
+              <input type="text" id="f-payment-terms" placeholder="e.g. Net 30, ACH">
+            </div>
+            <div class="form-group">
+              <label>Incoterms</label>
+              <input type="text" id="f-incoterms" placeholder="e.g. CIP Houston">
+            </div>
+          </div>
+        </div>
+
+        <!-- Client / Ship-To -->
+        <div class="form-section no-print">
+          <h4>Parties</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bill To — Client Name</label>
+              <input type="text" id="f-client-name" placeholder="Saudi Aramco / Aramco Americas">
+            </div>
+            <div class="form-group">
+              <label>Bill To — Address</label>
+              <textarea id="f-client-addr" rows="3" placeholder="Client billing address"></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ship To / Consignee</label>
+              <textarea id="f-ship-to" rows="3" placeholder="Shipping / consignee address"></textarea>
+            </div>
+            <div class="form-group">
+              <label>End User (if different)</label>
+              <textarea id="f-end-user" rows="3" placeholder="End user / final destination"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping -->
+        <div class="form-section no-print">
+          <h4>Shipping Details</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Carrier / Freight Forwarder</label>
+              <input type="text" id="f-carrier" placeholder="e.g. Kuehne + Nagel">
+            </div>
+            <div class="form-group">
+              <label>Country of Origin</label>
+              <input type="text" id="f-origin" value="USA">
+            </div>
+            <div class="form-group">
+              <label>Currency</label>
+              <select id="f-currency">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="SAR">SAR</option>
+                <option value="AED">AED</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Notes / Special Instructions</label>
+              <textarea id="f-notes" rows="2" placeholder="Any special instructions or notes..."></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:2;">
+              <label>Manufacturer — Name &amp; Address <span style="color:var(--teal);font-size:10px;">(prints on Certificate of Origin)</span></label>
+              <select id="f-mfr-preset" onchange="applyMfrPreset()" style="margin-bottom:6px;">
+                <option value="">— Select manufacturer from list —</option>
+              </select>
+              <textarea id="f-manufacturer" rows="3" placeholder="Manufacturer name and full address (or pick from list above)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- TI-MAIN-Q Toggle -->
+        <div class="main-q-toggle no-print">
+          <input type="checkbox" id="main-q-toggle" onchange="toggleMainQ()">
+          <label for="main-q-toggle" style="margin-right:8px;">📋 Enable Contract Price Lines — Label:</label>
+          <input type="text" id="main-q-label" value="TI-MAIN-Q" placeholder="e.g. TI-MAIN-Q" style="width:140px;padding:4px 8px;border:1px solid #f0c060;border-radius:4px;font-size:12px;background:#fffbe8;font-weight:700;color:#8a6000;">
+        </div>
+        <div id="main-q-section" class="no-print">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h5 style="margin:0;">Contract Price Lines</h5>
+            <button class="btn-sm btn-teal" onclick="addMqRow()" style="font-size:11px;">+ Add Line</button>
+          </div>
+          <div id="mq-rows"></div>
+        </div>
+
+        <!-- Line Items -->
+        <div class="form-section no-print">
+          <h4>Line Items &nbsp;<button class="btn-sm btn-teal" onclick="addLineItem()" style="font-size:11px;">+ Add Row</button> &nbsp;<button class="btn-sm btn-gray" onclick="importFromQuote()" style="font-size:11px;background:#0a7b8a33;color:var(--teal);">↓ Import from Quote</button> &nbsp;<button class="btn-sm btn-gray" id="specs-toggle-btn" onclick="toggleAllSpecs()" style="font-size:11px;background:#0a7b8a22;color:var(--teal);">▼ Show Specs</button></h4>
+          <div style="overflow-x:auto;">
+            <table class="line-items-table" id="line-items-table">
+              <thead>
+                <tr>
+                  <th style="width:40px;">#</th>
+                  <th style="width:80px;">Item No.</th>
+                  <th style="width:120px;">Part No.</th>
+                  <th>Description</th>
+                  <th style="width:55px;">Qty</th>
+                  <th style="width:55px;">Unit</th>
+                  <th style="width:90px;">Unit Price</th>
+                  <th style="width:90px;">Total</th>
+                  <th style="width:80px;">ECCN/HS</th>
+                  <th style="width:60px;">Origin</th>
+                  <th style="width:30px;"></th>
+                </tr>
+              </thead>
+              <tbody id="line-items-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="form-section no-print" id="totals-area">
+          <h4>Order Totals</h4>
+          <div class="totals-row"><span class="totals-label">Subtotal</span><span class="totals-value" id="tot-subtotal">$0.00</span></div>
+          <div class="totals-row">
+            <span class="totals-label">Discount <input type="number" id="tot-discount-pct" value="0" min="0" max="100" style="width:50px;display:inline-block;padding:2px 4px;border:1px solid #ddd;border-radius:3px;" oninput="recalcTotals()"> %</span>
+            <span class="totals-value" style="color:var(--red);" id="tot-discount-val">-$0.00</span>
+          </div>
+          <div class="totals-row"><span class="totals-label">Net Value</span><span class="totals-value" id="tot-net">$0.00</span></div>
+          <div class="totals-row" style="padding-top:8px;border-top:2px solid var(--teal);"><span class="totals-label" style="font-weight:700;color:var(--teal-dark);">TOTAL INVOICE VALUE</span><span class="totals-value" style="font-size:16px;font-weight:700;color:var(--teal-dark);" id="tot-total">$0.00</span></div>
+        </div>
+
+        <!-- Payment Block -->
+        <div class="form-section no-print">
+          <h4>Payment Instructions</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Payment Method</label>
+              <input type="text" id="f-pay-method" value="ACH / Wire Transfer">
+            </div>
+            <div class="form-group">
+              <label>Bank Name</label>
+              <input type="text" id="f-bank-name" value="TD Bank, N.A.">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Account Name</label>
+              <input type="text" id="f-bank-acct-name" value="Technologies International, LLC">
+            </div>
+            <div class="form-group">
+              <label>ABA Routing</label>
+              <input type="text" id="f-bank-aba" value="026013673">
+            </div>
+            <div class="form-group">
+              <label>Account Number</label>
+              <input type="text" id="f-bank-acct" value="4247908415">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>SWIFT Code</label>
+              <input type="text" id="f-bank-swift" value="NRTHUS33">
+            </div>
+            <div class="form-group">
+              <label>Invoice Submit Email (if applicable)</label>
+              <input type="text" id="f-inv-email" placeholder="e.g. InvoicesASC@aramcoamericas.com">
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /editor-body -->
+    </div><!-- /inv-editor -->
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ===================== PRINT AREA ===================== -->
+<!-- Hidden on screen, shown only during print via JS -->
+<div id="print-area" style="display:none;">
+  <!-- This is populated by buildPrintArea() before printing -->
+</div>
+
+<script>
+// ============================================================
+// AUTH + GLOBALS
+// ============================================================
+const AUTH = (() => {
+  try {
+    const s = sessionStorage.getItem('tikitmeer_auth');
+    return s ? JSON.parse(s) : { user: 'dhanzal', pass: 'aA292199', name: 'David Hanzal' };
+  } catch(e) {
+    return { user: 'dhanzal', pass: 'aA292199', name: 'David Hanzal' };
+  }
+})();
+
+const API_BASE = '/portal/invoices/invoice-api.php';
+let currentInvoiceId = null;
+let allInvoices = [];
+let allLineItems = [];
+let unsavedChanges = false;
+
+// ============================================================
+// API HELPER
+// ============================================================
+async function api(action, data = {}) {
+  const payload = { action, auth_user: AUTH.user, auth_pass: AUTH.pass, ...data };
+  console.log(`[api] ${action} user=${AUTH.user}`);
+  const r = await fetch(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const json = await r.json();
+  if (!json.success) throw new Error(json.error || 'API error');
+  return json;
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+function markUnsaved() {
+  unsavedChanges = true;
+  document.getElementById('unsaved-bar').style.display = 'block';
+}
+
+function markSaved() {
+  unsavedChanges = false;
+  document.getElementById('unsaved-bar').style.display = 'none';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sidebar-user').textContent = AUTH.name || AUTH.user;
+  ping();
+  loadStats();
+  loadInvoices().then(() => {
+    const invParam = new URLSearchParams(window.location.search).get('inv');
+    if (invParam) openInvoice(parseInt(invParam, 10));
+  });
+  loadHsCodes();
+  loadManufacturers();
+
+  // Mark unsaved on any form change
+  document.getElementById('editor-body').addEventListener('input', () => {
+    if (currentInvoiceId) markUnsaved();
+  });
+});
+
+async function ping() {
+  try {
+    const r = await api('ping');
+    document.getElementById('api-status').innerHTML = '<span style="color:var(--green);">✓ API OK · ' + (AUTH.name || AUTH.user) + '</span>';
+    console.log('[ping]', r);
+  } catch(e) {
+    document.getElementById('api-status').innerHTML = '<span style="color:var(--red);">✗ API error: ' + e.message + '</span>';
+  }
+}
+
+async function loadStats() {
+  try {
+    const r = await api('get_stats');
+    document.getElementById('stat-total').textContent = r.total || 0;
+    document.getElementById('stat-draft').textContent = r.draft || 0;
+    document.getElementById('stat-issued').textContent = r.issued || 0;
+    document.getElementById('stat-paid').textContent = r.paid || 0;
+  } catch(e) {}
+}
+
+// ============================================================
+// INVOICE LIST
+// ============================================================
+async function loadInvoices() {
+  try {
+    const r = await api('list_invoices');
+    allInvoices = r.invoices || [];
+    renderInvoiceList(allInvoices);
+  } catch(e) {
+    document.getElementById('inv-list').innerHTML = '<div style="color:#f88;padding:16px;font-size:12px;">Error: ' + e.message + '</div>';
+  }
+}
+
+function renderInvoiceList(list) {
+  const el = document.getElementById('inv-list');
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#888;font-size:12px;">No invoices yet.<br>Click + New to create one.</div>'; return; }
+  el.innerHTML = list.map(inv => `
+    <div class="inv-item ${inv.id == currentInvoiceId ? 'active' : ''}" onclick="openInvoice(${inv.id})" data-id="${inv.id}">
+      <div class="inv-item-num">${inv.inv_number}</div>
+      <div class="inv-item-client">${inv.client_name || '—'}</div>
+      <div><span class="inv-item-status status-${inv.status}">${inv.status}</span></div>
+    </div>
+  `).join('');
+}
+
+function filterInvoices(q) {
+  const filtered = allInvoices.filter(i =>
+    (i.inv_number || '').toLowerCase().includes(q.toLowerCase()) ||
+    (i.client_name || '').toLowerCase().includes(q.toLowerCase())
+  );
+  renderInvoiceList(filtered);
+}
+
+// ============================================================
+// OPEN INVOICE
+// ============================================================
+async function openInvoice(id) {
+  currentInvoiceId = id;
+  // Highlight sidebar
+  document.querySelectorAll('.inv-item').forEach(el => el.classList.remove('active'));
+  const active = document.querySelector(`.inv-item[data-id="${id}"]`);
+  if (active) active.classList.add('active');
+
+  // Show editor immediately
+  showEditor();
+
+  try {
+    const r = await api('get_invoice', { id });
+    console.log('[openInvoice] raw response:', JSON.stringify(r).substring(0, 300));
+    fillEditor(r.invoice);
+    markSaved();
+  } catch(e) {
+    showToast('Error loading invoice: ' + e.message, 'error');
+    console.error('[openInvoice error]', e);
+  }
+}
+
+function showEditor() {
+  document.getElementById('welcome').style.display = 'none';
+  const ed = document.getElementById('inv-editor');
+  ed.style.display = 'block';
+  document.getElementById('main').scrollTop = 0;
+  const plLink = document.getElementById('pl-link');
+  if (plLink && currentInvoiceId) plLink.href = '/portal/invoices/packing-list.html?inv=' + currentInvoiceId;
+  const cooLink = document.getElementById('coo-link');
+  if (cooLink && currentInvoiceId) cooLink.href = '/portal/invoices/certificate_of_origin.html?inv=' + currentInvoiceId;
+}
+
+function fillEditor(inv) {
+  try {
+    document.getElementById('editor-title').textContent = inv.inv_number || 'Invoice';
+    document.getElementById('f-inv-num').value = inv.inv_number || '';
+    document.getElementById('f-inv-date').value = inv.inv_date ? inv.inv_date.split('T')[0] : new Date().toISOString().split('T')[0];
+    document.getElementById('f-po-num').value = inv.po_number || '';
+    document.getElementById('f-quote-num').value = inv.quote_number || '';
+    document.getElementById('f-payment-terms').value = inv.payment_terms || '';
+    document.getElementById('f-incoterms').value = inv.incoterms || '';
+    document.getElementById('f-client-name').value = inv.client_name || '';
+    document.getElementById('f-client-addr').value = inv.client_addr || '';
+    document.getElementById('f-ship-to').value = inv.ship_to || '';
+    document.getElementById('f-end-user').value = inv.end_user || '';
+    document.getElementById('f-carrier').value = inv.carrier || '';
+    document.getElementById('f-origin').value = inv.country_of_origin || 'USA';
+    document.getElementById('f-currency').value = inv.currency || 'USD';
+    document.getElementById('f-notes').value = inv.notes || '';
+    document.getElementById('f-manufacturer').value = inv.manufacturer || '';
+    document.getElementById('f-mfr-preset').value = '';
+    resolveManufacturerAddress(inv.manufacturer || '');
+    document.getElementById('f-pay-method').value = inv.pay_method || 'ACH / Wire Transfer';
+    document.getElementById('f-bank-name').value = inv.bank_name || 'TD Bank, N.A.';
+    document.getElementById('f-bank-acct-name').value = inv.bank_acct_name || 'Technologies International, LLC';
+    document.getElementById('f-bank-aba').value = inv.bank_aba || '026013673';
+    document.getElementById('f-bank-acct').value = inv.bank_acct || '4247908415';
+    document.getElementById('f-bank-swift').value = inv.bank_swift || 'NRTHUS33';
+    document.getElementById('f-inv-email').value = inv.inv_email || '';
+    document.getElementById('inv-status-select').value = inv.status || 'draft';
+    document.getElementById('tot-discount-pct').value = inv.discount_pct || 0;
+
+    // TI-MAIN-Q multi-row
+    const mqData = inv.main_q_data ? (typeof inv.main_q_data === 'string' ? JSON.parse(inv.main_q_data) : inv.main_q_data) : null;
+    if (mqData && mqData.enabled) {
+      document.getElementById('main-q-toggle').checked = true;
+      document.getElementById('main-q-section').style.display = 'block';
+      if (mqData.label) document.getElementById('main-q-label').value = mqData.label;
+      mqRows = (mqData.rows && mqData.rows.length) ? mqData.rows : [{item_num: mqData.label || 'TI-MAIN-Q', description: mqData.description || '', gross: mqData.gross || 0, discount_pct: mqData.discount_pct || 0}];
+      renderMqRows();
+    } else {
+      document.getElementById('main-q-toggle').checked = false;
+      document.getElementById('main-q-section').style.display = 'none';
+      mqRows = [];
+    }
+
+    // Line items — bulletproof parsing
+    let items = [];
+    try {
+      let raw = inv.line_items || '[]';
+      if (typeof raw === 'string') { raw = JSON.parse(raw); }
+      if (typeof raw === 'string') { raw = JSON.parse(raw); } // double-encoded
+      if (Array.isArray(raw)) { items = raw; }
+      else if (raw && typeof raw === 'object') { items = Object.values(raw); }
+    } catch(e) {
+      console.error('[fillEditor] line_items parse error:', e);
+      items = [];
+    }
+    // Normalize field names: item_num/model -> part_no
+    items = items.map(item => ({
+      item_num:    item.item_num || item.item_no || String(Array.isArray(item) ? '' : ''),
+      part_no:     item.part_no || item.model || '',
+      description: ((item.description || item.title || '')).split('QTY')[0].split('Qty')[0].split('\n')[0].trim(),
+      full_description: (item.full_description || item.title_description || item.description || item.title || '').trim(),
+      qty:         item.qty || 1,
+      unit:        item.unit || 'EA',
+      unit_price:  item.unit_price || item.price || 0,
+      eccn:             item.eccn || 'EAR99',
+      ncm:              item.ncm || '9023.00.00',
+      origin:      item.origin || 'USA'
+    }));
+    allLineItems = items;
+    console.log('[fillEditor] lineItems count:', items.length);
+    renderLineItems(items);
+    recalcTotals();
+  } catch(e) {
+    console.error('[fillEditor error]', e);
+    showToast('Error rendering invoice: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// LINE ITEMS
+// ============================================================
+function renderLineItems(items) {
+  var tbody = document.getElementById('line-items-body');
+  tbody.innerHTML = '';
+  var S = 'border:2px solid #0a7b8a;background:#ffffff;font-size:12px;padding:4px 6px;border-radius:3px;box-sizing:border-box;font-family:Arial,sans-serif;color:#222;width:100%;';
+  function wire(inp, i, field, isNum) {
+    inp.addEventListener('focus', function(){ inp.style.borderColor='#0a7b8a'; inp.style.background='#fff'; });
+    inp.addEventListener('blur',  function(){ inp.style.borderColor='#0a7b8a'; inp.style.background='#ffffff'; });
+    inp.addEventListener('input', function(){
+      allLineItems[i][field] = isNum ? (parseFloat(inp.value)||0) : inp.value;
+      if (field==='qty'||field==='unit_price') {
+        recalcTotals();
+        var el=document.getElementById('li-total-'+i);
+        if(el) el.textContent=fmt((allLineItems[i].qty||1)*(allLineItems[i].unit_price||0));
+      }
+      markUnsaved();
+    });
+  }
+  items.forEach(function(item, i) {
+    // Main row
+    var tr = document.createElement('tr');
+    tr.id = 'li-row-' + i;
+
+    // Row number
+    var tdNum = document.createElement('td');
+    tdNum.style.cssText = 'text-align:center;color:#888;padding:4px;font-size:11px;vertical-align:top;padding-top:8px;';
+    tdNum.textContent = i + 1;
+
+    // Item No.
+    var tdItemNum = document.createElement('td');
+    var inpItemNum = document.createElement('input');
+    inpItemNum.value = item.item_num || '';
+    inpItemNum.placeholder = 'e.g. 001';
+    inpItemNum.style.cssText = S + 'text-align:center;min-width:60px;';
+    wire(inpItemNum, i, 'item_num', false);
+    tdItemNum.appendChild(inpItemNum);
+
+    // Part No.
+    var tdPart = document.createElement('td');
+    var inpPart = document.createElement('input');
+    inpPart.value = item.part_no || '';
+    inpPart.style.cssText = S + 'font-weight:700;color:#0a7b8a;min-width:90px;';
+    wire(inpPart, i, 'part_no', false);
+    tdPart.appendChild(inpPart);
+
+    // Description with spec toggle
+    var tdDesc = document.createElement('td');
+    var descWrap = document.createElement('div');
+    descWrap.style.cssText = 'display:flex;align-items:flex-start;gap:4px;';
+    var btnToggle = document.createElement('button');
+    btnToggle.innerHTML = '&#9660;';
+    btnToggle.title = 'Edit full spec';
+    btnToggle.style.cssText = 'background:none;border:1px solid #0a7b8a;cursor:pointer;color:#0a7b8a;font-size:10px;padding:2px 5px;border-radius:3px;flex-shrink:0;margin-top:2px;';
+    (function(idx){ btnToggle.addEventListener('click', function(){ toggleSpec(idx); }); })(i);
+    var inpDesc = document.createElement('input');
+    inpDesc.value = item.description || '';
+    inpDesc.style.cssText = S + 'min-width:180px;flex:1;';
+    wire(inpDesc, i, 'description', false);
+    descWrap.appendChild(btnToggle);
+    descWrap.appendChild(inpDesc);
+    tdDesc.appendChild(descWrap);
+
+    // Qty
+    var tdQty = document.createElement('td');
+    var inpQty = document.createElement('input');
+    inpQty.type = 'number'; inpQty.min = '0'; inpQty.value = item.qty || 1;
+    inpQty.style.cssText = S + 'text-align:center;min-width:50px;';
+    wire(inpQty, i, 'qty', true);
+    tdQty.appendChild(inpQty);
+
+    // Unit
+    var tdUnit = document.createElement('td');
+    var inpUnit = document.createElement('input');
+    inpUnit.value = item.unit || 'EA';
+    inpUnit.style.cssText = S + 'text-align:center;min-width:40px;';
+    wire(inpUnit, i, 'unit', false);
+    tdUnit.appendChild(inpUnit);
+
+    // Unit Price
+    var tdPrice = document.createElement('td');
+    var inpPrice = document.createElement('input');
+    inpPrice.type = 'number'; inpPrice.min = '0'; inpPrice.step = '0.01';
+    inpPrice.value = item.unit_price || 0;
+    inpPrice.style.cssText = S + 'text-align:right;min-width:80px;';
+    wire(inpPrice, i, 'unit_price', true);
+    tdPrice.appendChild(inpPrice);
+
+    // Total
+    var tdTotal = document.createElement('td');
+    tdTotal.id = 'li-total-' + i;
+    tdTotal.style.cssText = 'text-align:right;font-weight:600;padding:4px 6px;white-space:nowrap;vertical-align:top;padding-top:8px;';
+    tdTotal.textContent = fmt((item.qty||1)*(item.unit_price||0));
+
+    // ECCN - default EAR99
+    var tdEccn = document.createElement('td');
+    var inpEccn = document.createElement('input');
+    inpEccn.value = item.eccn || 'EAR99';
+    inpEccn.style.cssText = S + 'font-size:11px;min-width:65px;';
+    wire(inpEccn, i, 'eccn', false);
+    tdEccn.appendChild(inpEccn);
+
+    // Origin
+    var tdOrigin = document.createElement('td');
+    var inpOrigin = document.createElement('input');
+    inpOrigin.value = item.origin || 'USA';
+    inpOrigin.style.cssText = S + 'text-align:center;min-width:42px;';
+    wire(inpOrigin, i, 'origin', false);
+    tdOrigin.appendChild(inpOrigin);
+
+    // Actions: insert + delete
+    var tdAct = document.createElement('td');
+    tdAct.style.cssText = 'white-space:nowrap;vertical-align:top;padding-top:4px;';
+    var btnIns = document.createElement('button');
+    btnIns.innerHTML = '&#43;';
+    btnIns.title = 'Insert row below';
+    btnIns.style.cssText = 'background:none;border:none;cursor:pointer;color:#0a7b8a;font-size:16px;padding:2px 4px;line-height:1;';
+    (function(idx){ btnIns.addEventListener('click', function(){ addLineItem(idx); }); })(i);
+    var btnDel = document.createElement('button');
+    btnDel.innerHTML = '&times;';
+    btnDel.style.cssText = 'background:none;border:none;cursor:pointer;color:#c33;font-size:16px;padding:2px 6px;line-height:1;';
+    (function(idx){ btnDel.addEventListener('click', function(){ removeItem(idx); }); })(i);
+    tdAct.appendChild(btnIns);
+    tdAct.appendChild(btnDel);
+
+    [tdNum, tdItemNum, tdPart, tdDesc, tdQty, tdUnit, tdPrice, tdTotal, tdEccn, tdOrigin, tdAct].forEach(function(td){ tr.appendChild(td); });
+    tbody.appendChild(tr);
+
+    // Spec expansion row
+    var specTr = document.createElement('tr');
+    specTr.id = 'li-spec-' + i;
+    specTr.style.display = 'none';
+    specTr.style.background = '#f0fafb';
+    var specTd = document.createElement('td');
+    specTd.colSpan = 11;
+    specTd.style.cssText = 'padding:6px 8px 10px 30px;';
+    var specLabel = document.createElement('div');
+    specLabel.style.cssText = 'font-size:11px;font-weight:700;color:#0a7b8a;margin-bottom:4px;';
+    specLabel.textContent = 'Full Technical Specification (prints in invoice):';
+    var specTA = document.createElement('textarea');
+    specTA.value = item.full_description || item.description || '';
+    specTA.rows = 4;
+    specTA.style.cssText = 'width:100%;border:2px solid #0a7b8a;border-radius:3px;font-size:11px;font-family:Arial,sans-serif;padding:6px;resize:vertical;';
+    (function(idx, ta){ ta.addEventListener('input', function(){ allLineItems[idx].full_description = ta.value; markUnsaved(); }); })(i, specTA);
+    specTd.appendChild(specLabel);
+    specTd.appendChild(specTA);
+    specTr.appendChild(specTd);
+    tbody.appendChild(specTr);
+  });
+}
+
+function toggleSpec(idx) {
+  var row = document.getElementById('li-spec-' + idx);
+  if (!row) return;
+  row.style.display = (row.style.display === 'none' || row.style.display === '') ? '' : 'none';
+}
+
+function toggleAllSpecs() {
+  var btn = document.getElementById('specs-toggle-btn');
+  var anyOpen = false;
+  for (var i = 0; i < allLineItems.length; i++) {
+    var r = document.getElementById('li-spec-' + i);
+    if (r && r.style.display !== 'none') { anyOpen = true; break; }
+  }
+  for (var i = 0; i < allLineItems.length; i++) {
+    var r = document.getElementById('li-spec-' + i);
+    if (r) r.style.display = anyOpen ? 'none' : '';
+  }
+  if (btn) btn.textContent = anyOpen ? '▼ Show Specs' : '▲ Hide Specs';
+}
+
+function updateItem(idx, field, val) {
+  if (!allLineItems[idx]) return;
+  allLineItems[idx][field] = val;
+  if (field === 'qty' || field === 'unit_price') {
+    const el = document.getElementById('li-total-' + idx);
+    if (el) el.textContent = fmt((allLineItems[idx].qty||1) * (allLineItems[idx].unit_price||0));
+  }
+  markUnsaved();
+}
+
+function addLineItem(afterIdx) {
+  var newItem = { item_num: '', part_no: '', description: '', full_description: '', qty: 1, unit: 'EA', unit_price: 0, eccn: 'EAR99', ncm: '9023.00.00', origin: 'USA' };
+  if (afterIdx !== undefined) {
+    allLineItems.splice(afterIdx + 1, 0, newItem);
+  } else {
+    allLineItems.push(newItem);
+  }
+  renderLineItems(allLineItems);
+  recalcTotals();
+  markUnsaved();
+}
+
+function removeItem(idx) {
+  allLineItems.splice(idx, 1);
+  renderLineItems(allLineItems);
+  recalcTotals();
+  markUnsaved();
+}
+
+// ============================================================
+// TOTALS
+// ============================================================
+function recalcTotals() {
+  let sub = allLineItems.reduce((s, it) => s + ((it.qty||1)*(it.unit_price||0)), 0);
+  const discPct = parseFloat(document.getElementById('tot-discount-pct').value) || 0;
+  const discVal = sub * (discPct / 100);
+  const net = sub - discVal;
+  document.getElementById('tot-subtotal').textContent = fmt(sub);
+  document.getElementById('tot-discount-val').textContent = '-' + fmt(discVal);
+  document.getElementById('tot-net').textContent = fmt(net);
+  document.getElementById('tot-total').textContent = fmt(net);
+  markUnsaved();
+}
+
+// TI-MAIN-Q multi-row support
+let mqRows = [];
+
+function toggleMainQ() {
+  const on = document.getElementById('main-q-toggle').checked;
+  document.getElementById('main-q-section').style.display = on ? 'block' : 'none';
+  if (on && mqRows.length === 0) addMqRow();
+  markUnsaved();
+}
+
+function addMqRow() {
+  const label = (document.getElementById('main-q-label').value || 'TI-MAIN-Q').trim();
+  mqRows.push({ item_num: label + (mqRows.length > 0 ? '-' + (mqRows.length + 1) : ''), description: '', gross: 0, discount_pct: 0 });
+  renderMqRows();
+  markUnsaved();
+}
+
+function removeMqRow(idx) {
+  mqRows.splice(idx, 1);
+  renderMqRows();
+  markUnsaved();
+}
+
+function updateMqRow(idx, field, val) {
+  if (!mqRows[idx]) return;
+  mqRows[idx][field] = (field === 'gross' || field === 'discount_pct') ? (parseFloat(val) || 0) : val;
+  if (field === 'gross' || field === 'discount_pct') {
+    const net = mqRows[idx].gross * (1 - mqRows[idx].discount_pct / 100);
+    const netEl = document.getElementById('mq-net-' + idx);
+    if (netEl) netEl.value = fmt(net);
+  }
+  markUnsaved();
+}
+
+function renderMqRows() {
+  const container = document.getElementById('mq-rows');
+  if (!container) return;
+  // Before rebuilding, flush any live DOM values back into mqRows
+  flushMqRowsFromDOM();
+  container.innerHTML = mqRows.map((row, i) => {
+    const rowNet = (row.gross||0) * (1 - (row.discount_pct||0)/100);
+    return '<div class="mq-row-block" data-idx="' + i + '" style="background:#fff;border:1px solid #f0c060;border-radius:6px;padding:12px;margin-bottom:10px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+        '<span style="font-size:11px;font-weight:700;color:#8a6000;">Line ' + (i+1) + '</span>' +
+        (mqRows.length > 1 ? '<button onclick="removeMqRow(' + i + ')" style="background:none;border:none;cursor:pointer;color:#c33;font-size:13px;">&#10005; Remove</button>' : '') +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group" style="flex:0 0 160px;">' +
+          '<label>Item Number</label>' +
+          '<input class="mq-item-num" data-idx="' + i + '" type="text" value="' + escHtml(row.item_num) + '" oninput="mqRows[' + i + '].item_num=this.value;markUnsaved();" placeholder="TI-MAIN-Q">' +
+        '</div>' +
+        '<div class="form-group" style="flex:3;">' +
+          '<label>Description</label>' +
+          '<textarea class="mq-desc" data-idx="' + i + '" rows="3" oninput="mqRows[' + i + '].description=this.value;markUnsaved();" placeholder="Supply and delivery of technical training equipment...">' + escHtml(row.description) + '</textarea>' +
+        '</div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group">' +
+          '<label>Gross Price</label>' +
+          '<input class="mq-gross-inp" data-idx="' + i + '" type="number" value="' + (row.gross||'') + '" placeholder="0.00" oninput="mqRows[' + i + '].gross=parseFloat(this.value)||0;calcMqNet(' + i + ');markUnsaved();">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>Discount (%)</label>' +
+          '<input class="mq-disc-inp" data-idx="' + i + '" type="number" value="' + (row.discount_pct||0) + '" min="0" max="100" oninput="mqRows[' + i + '].discount_pct=parseFloat(this.value)||0;calcMqNet(' + i + ');markUnsaved();">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>Net Value (auto)</label>' +
+          '<input type="text" id="mq-net-' + i + '" readonly value="' + fmt(rowNet) + '" style="background:#f5f5f5;font-weight:700;">' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function calcMqNet(idx) {
+  if (!mqRows[idx]) return;
+  const net = (mqRows[idx].gross||0) * (1 - (mqRows[idx].discount_pct||0)/100);
+  const el = document.getElementById('mq-net-' + idx);
+  if (el) el.value = fmt(net);
+}
+
+// Read current live DOM values back into mqRows before any save or rebuild
+function flushMqRowsFromDOM() {
+  document.querySelectorAll('.mq-row-block').forEach(block => {
+    const i = parseInt(block.dataset.idx);
+    if (!mqRows[i]) return;
+    const numEl = block.querySelector('.mq-item-num');
+    const descEl = block.querySelector('.mq-desc');
+    const grossEl = block.querySelector('.mq-gross-inp');
+    const discEl = block.querySelector('.mq-disc-inp');
+    if (numEl)   mqRows[i].item_num     = numEl.value;
+    if (descEl)  mqRows[i].description  = descEl.value;
+    if (grossEl) mqRows[i].gross        = parseFloat(grossEl.value) || 0;
+    if (discEl)  mqRows[i].discount_pct = parseFloat(discEl.value) || 0;
+  });
+}
+
+function calcMainQ() { renderMqRows(); }
+
+// ============================================================
+// SAVE
+// ============================================================
+async function saveInvoice() {
+  if (!currentInvoiceId) return;
+  // Flush any live DOM values into mqRows before building payload
+  flushMqRowsFromDOM();
+  const mqOn = document.getElementById('main-q-toggle').checked;
+  const mqLabel = document.getElementById('main-q-label').value || 'TI-MAIN-Q';
+  const mqData = mqOn ? {
+    enabled: true,
+    label: mqLabel,
+    rows: mqRows
+  } : { enabled: false };
+
+  const payload = {
+    id: currentInvoiceId,
+    inv_number: document.getElementById('f-inv-num').value,
+    inv_date: document.getElementById('f-inv-date').value,
+    po_number: document.getElementById('f-po-num').value,
+    quote_number: document.getElementById('f-quote-num').value,
+    payment_terms: document.getElementById('f-payment-terms').value,
+    incoterms: document.getElementById('f-incoterms').value,
+    client_name: document.getElementById('f-client-name').value,
+    client_addr: document.getElementById('f-client-addr').value,
+    ship_to: document.getElementById('f-ship-to').value,
+    end_user: document.getElementById('f-end-user').value,
+    carrier: document.getElementById('f-carrier').value,
+    country_of_origin: document.getElementById('f-origin').value,
+    currency: document.getElementById('f-currency').value,
+    notes: document.getElementById('f-notes').value,
+    manufacturer: document.getElementById('f-manufacturer').value,
+    status: document.getElementById('inv-status-select').value,
+    discount_pct: parseFloat(document.getElementById('tot-discount-pct').value) || 0,
+    pay_method: document.getElementById('f-pay-method').value,
+    bank_name: document.getElementById('f-bank-name').value,
+    bank_acct_name: document.getElementById('f-bank-acct-name').value,
+    bank_aba: document.getElementById('f-bank-aba').value,
+    bank_acct: document.getElementById('f-bank-acct').value,
+    bank_swift: document.getElementById('f-bank-swift').value,
+    inv_email: document.getElementById('f-inv-email').value,
+    line_items: JSON.stringify(allLineItems),
+    main_q_data: JSON.stringify(mqData)
+  };
+
+  try {
+    await api('save_invoice', payload);
+    // Remember full manufacturer address for future invoices
+    const mfr = document.getElementById('f-manufacturer').value.trim();
+    if (mfr && mfr.includes('\n')) {
+      try { await api('save_manufacturer_address', { name: mfr.split('\n')[0], address: mfr }); } catch(e) {}
+    }
+    markSaved();
+    showToast('Invoice saved.', 'success');
+    loadInvoices();
+    loadStats();
+  } catch(e) {
+    showToast('Save error: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// CREATE / DELETE
+// ============================================================
+let allQuotesList = [];
+
+async function openNewModal() {
+  document.getElementById('new-inv-num').value = '';
+  document.getElementById('new-inv-quote').value = '';
+  document.getElementById('new-inv-client').value = '';
+  document.getElementById('client-autofill-note').textContent = '';
+  document.getElementById('quote-dropdown').style.display = 'none';
+  // Auto-generate next invoice number
+  try {
+    const r = await api('list_invoices', {});
+    const nums = (r.invoices||[]).map(inv => {
+      const m = inv.inv_number.match(/(\d+)$/);
+      return m ? parseInt(m[1]) : 0;
+    });
+    const next = (nums.length ? Math.max(...nums) : 0) + 1;
+    document.getElementById('new-inv-num').value = 'INV-' + new Date().getFullYear() + '-' + String(next).padStart(4,'0');
+  } catch(e) {}
+  // Load quotes from quotation engine (has list_quotes action returning ok:true)
+  try {
+    const resp = await fetch('/portal/quotation/api.php', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: 'list_quotes' })
+    });
+    const data = await resp.json();
+    if (data.ok && data.quotes) {
+      allQuotesList = data.quotes.map(q => ({
+        quote_number: q.quote_number || '',
+        client_name:  q.client_name  || '',
+        client_addr:  '',
+        ship_to:      '',
+        end_user:     ''
+      })).filter(q => q.quote_number);
+    }
+  } catch(e) { allQuotesList = []; }
+  // Also load clients for address autofill
+  try {
+    const cresp = await fetch('/portal/quotation/api.php', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: 'clients' })
+    });
+    const cdata = await cresp.json();
+    if (cdata.ok && cdata.clients) {
+      // Merge client address info into allQuotesList
+      allQuotesList.forEach(q => {
+        const match = cdata.clients.find(c => c.company_name === q.client_name);
+        if (match) { q.client_addr = match.company_name + (match.country ? '\n' + match.country : ''); }
+      });
+    }
+  } catch(e) {}
+  document.getElementById('new-inv-modal').classList.add('active');
+  setTimeout(() => document.getElementById('new-inv-quote').focus(), 100);
+}
+
+function filterQuoteDropdown(val) {
+  const dd = document.getElementById('quote-dropdown');
+  if (!allQuotesList.length) { dd.style.display='none'; return; }
+  const term = val.toLowerCase().trim();
+  const matches = term
+    ? allQuotesList.filter(qt => qt.quote_number.toLowerCase().includes(term) || qt.client_name.toLowerCase().includes(term))
+    : allQuotesList.slice(0, 30);
+  if (!matches.length) { dd.style.display='none'; return; }
+  dd.innerHTML = '';
+  matches.forEach(qt => {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:9px 12px;cursor:pointer;border-bottom:1px solid #eee;font-size:12px;';
+    div.dataset.qnum   = qt.quote_number;
+    div.dataset.client = qt.client_name;
+    div.dataset.addr   = qt.client_addr||'';
+    div.innerHTML = '<strong style="color:#0a7b8a;">'+escHtml(qt.quote_number)+'</strong>' +
+      (qt.client_name ? ' <span style="color:#555;margin-left:8px;">'+escHtml(qt.client_name)+'</span>' : '');
+    div.addEventListener('mouseover', () => div.style.background='#e8f6f7');
+    div.addEventListener('mouseout',  () => div.style.background='');
+    div.addEventListener('click', () => selectQuote(div));
+    dd.appendChild(div);
+  });
+  dd.style.display = 'block';
+}
+
+function selectQuote(el) {
+  const qnum   = el.getAttribute('data-qnum');
+  const client = el.getAttribute('data-client');
+  document.getElementById('new-inv-quote').value  = qnum;
+  document.getElementById('new-inv-client').value = client;
+  document.getElementById('client-autofill-note').textContent = client ? '✓ auto-filled' : '';
+  document.getElementById('quote-dropdown').style.display = 'none';
+  // Auto-set invoice number to match quote number (e.g. INTL2026-335-R1 → INV-INTL2026-335-R1)
+  if (qnum) {
+    document.getElementById('new-inv-num').value = 'INV-' + qnum;
+  }
+}
+
+async function createInvoice() {
+  const num    = document.getElementById('new-inv-num').value.trim();
+  const quote  = document.getElementById('new-inv-quote').value.trim();
+  const client = document.getElementById('new-inv-client').value.trim();
+  if (!num) { showToast('Enter an invoice number.', 'error'); return; }
+  closeModal('new-inv-modal');
+
+  try {
+    const r = await api('create_invoice', { inv_number: num, quote_number: quote, client_name: client, status: document.getElementById('new-inv-status').value });
+    // If a quote was selected, pull its line items and client info immediately
+    if (quote) {
+      try {
+        const qi = await api('get_quote_items', { quote_number: quote });
+        // Also find full client info from allQuotesList
+        const qData = allQuotesList.find(q => q.quote_number === quote) || {};
+        let mfrAddr = '';
+        if (qi.suggested_manufacturer) {
+          const m = manufacturerList.find(x =>
+            x.name.toLowerCase() === qi.suggested_manufacturer.toLowerCase() ||
+            x.name.toLowerCase().includes(qi.suggested_manufacturer.toLowerCase())
+          );
+          mfrAddr = m ? m.address : qi.suggested_manufacturer;
+        }
+        const savePayload = {
+          id: r.id, inv_number: num, inv_date: new Date().toISOString().split('T')[0],
+          quote_number: quote, client_name: client || qi.client_name || '',
+          client_addr: qData.client_addr||'', ship_to: qData.ship_to||'',
+          end_user: qData.end_user||'', status: 'draft',
+          line_items: JSON.stringify(qi.items||[]),
+          country_of_origin:'USA', currency:'USD', incoterms:'',
+          payment_terms:'', carrier:'', notes:'',
+          manufacturer: mfrAddr,
+          pay_method:'ACH / Wire Transfer', bank_name:'TD Bank, N.A.',
+          bank_acct_name:'Technologies International, LLC',
+          bank_aba:'026013673', bank_acct:'4247908415', bank_swift:'NRTHUS33',
+          inv_email:'', discount_pct:0, main_q_data:'{}'
+        };
+        await api('save_invoice', savePayload);
+      } catch(e2) { /* import non-critical */ }
+    }
+    await loadInvoices();
+    openInvoice(r.id);
+    showToast('Invoice created.', 'success');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function deleteInvoice() {
+  if (!currentInvoiceId) return;
+  if (!confirm('Delete this invoice? This cannot be undone.')) return;
+  try {
+    await api('delete_invoice', { id: currentInvoiceId });
+    currentInvoiceId = null;
+    document.getElementById('inv-editor').style.display = 'none';
+    document.getElementById('welcome').style.display = 'block';
+    loadInvoices();
+    loadStats();
+    showToast('Invoice deleted.', 'success');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// ============================================================
+// MANUFACTURERS (Certificate of Origin)
+// ============================================================
+let manufacturerList = [];
+
+function mfrHasFullAddress(addr, name) {
+  if (!addr) return false;
+  if (addr.includes('\n')) return true;
+  if (name && addr.length > name.length + 12) return true;
+  if (/\d{3,}/.test(addr)) return true;
+  if (/\b(st|street|ave|dr|drive|road|suite|blvd|usa)\b/i.test(addr)) return true;
+  return false;
+}
+
+async function resolveManufacturerAddress(nameOrText) {
+  const el = document.getElementById('f-manufacturer');
+  if (!el) return;
+  const current = (nameOrText || el.value || '').trim();
+  if (!current) return;
+  const firstLine = current.split('\n')[0].trim();
+  if (mfrHasFullAddress(current, firstLine)) return;
+  try {
+    const r = await api('get_manufacturer_address', { name: firstLine });
+    if (r.address && mfrHasFullAddress(r.address, firstLine)) {
+      el.value = r.address;
+    }
+  } catch(e) { console.warn('resolveManufacturerAddress:', e.message); }
+}
+
+async function loadManufacturers() {
+  try {
+    const r = await api('list_manufacturers');
+    const seen = new Set();
+    manufacturerList = [];
+    const src = r.manufacturers || [...(r.presets || []), ...(r.from_db || [])];
+    src.forEach(m => {
+      const key = (m.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (!key || seen.has(key)) return;
+      // Prefer entry with full address if duplicate
+      const existing = manufacturerList.find(x => x.name.toLowerCase().replace(/[^a-z0-9]/g, '') === key);
+      if (existing) {
+        if (mfrHasFullAddress(m.address, m.name) && !mfrHasFullAddress(existing.address, existing.name)) {
+          existing.address = m.address;
+        }
+        return;
+      }
+      seen.add(key);
+      manufacturerList.push({ name: m.name, address: m.address || m.name });
+    });
+    manufacturerList.sort((a, b) => {
+      const af = mfrHasFullAddress(a.address, a.name) ? 0 : 1;
+      const bf = mfrHasFullAddress(b.address, b.name) ? 0 : 1;
+      if (af !== bf) return af - bf;
+      return a.name.localeCompare(b.name);
+    });
+    const sel = document.getElementById('f-mfr-preset');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Select manufacturer from list —</option>' +
+      manufacturerList.map((m, i) => {
+        const flag = mfrHasFullAddress(m.address, m.name) ? '' : ' (address needed)';
+        return `<option value="${i}">${m.name}${flag}</option>`;
+      }).join('');
+  } catch(e) { console.warn('loadManufacturers:', e.message); }
+}
+
+async function applyMfrPreset() {
+  const sel = document.getElementById('f-mfr-preset');
+  const idx = sel.value;
+  if (idx === '') return;
+  const m = manufacturerList[parseInt(idx, 10)];
+  if (!m) return;
+  let addr = m.address;
+  if (!mfrHasFullAddress(addr, m.name)) {
+    try {
+      const r = await api('get_manufacturer_address', { name: m.name });
+      if (r.address) addr = r.address;
+    } catch(e) {}
+  }
+  document.getElementById('f-manufacturer').value = addr;
+  markUnsaved();
+}
+
+async function applyMfrByName(name) {
+  let addr = name;
+  const match = manufacturerList.find(m =>
+    m.name.toLowerCase() === name.toLowerCase() ||
+    m.name.toLowerCase().includes(name.toLowerCase()) ||
+    name.toLowerCase().includes(m.name.toLowerCase())
+  );
+  if (match) addr = match.address;
+  if (!mfrHasFullAddress(addr, name)) {
+    try {
+      const r = await api('get_manufacturer_address', { name });
+      if (r.address) addr = r.address;
+    } catch(e) {}
+  }
+  document.getElementById('f-manufacturer').value = addr;
+  markUnsaved();
+}
+
+// ============================================================
+// IMPORT FROM QUOTE
+// ============================================================
+async function importFromQuote() {
+  const qNum = document.getElementById('f-quote-num').value.trim();
+  if (!qNum) { showToast('Enter a quote number first.', 'error'); return; }
+  try {
+    const r = await api('get_quote_items', { quote_number: qNum });
+    if (r.items && r.items.length) {
+      allLineItems = r.items.map(it => ({
+        part_no: it.part_no || it.model || '',
+        description: it.description || it.title || '',
+        qty: it.qty || 1,
+        unit: 'EA',
+        unit_price: it.unit_price || it.price || 0,
+        eccn: 'EAR99',
+        ncm: '9023.00.00',
+        full_description: (it.full_description || it.title_description || it.description || it.title || '').trim(),
+        origin: 'USA'
+      }));
+      renderLineItems(allLineItems);
+      recalcTotals();
+      if (r.suggested_manufacturer && !document.getElementById('f-manufacturer').value.trim()) {
+        applyMfrByName(r.suggested_manufacturer);
+      }
+      showToast('Imported ' + allLineItems.length + ' items from ' + qNum, 'success');
+      markUnsaved();
+    } else {
+      showToast('No items found for ' + qNum, 'error');
+    }
+  } catch(e) {
+    showToast('Import error: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// HS CODE MODAL
+// ============================================================
+let hsCodes = [];
+async function loadHsCodes() {
+  try {
+    const r = await api('get_hs_codes');
+    hsCodes = r.codes || [];
+  } catch(e) {}
+}
+
+function openHsModal() {
+  document.getElementById('hs-modal').classList.add('active');
+  filterHsCodes('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const hsInput = document.getElementById('hs-search-input');
+  if (hsInput) hsInput.addEventListener('input', (e) => filterHsCodes(e.target.value));
+  const hsModal = document.getElementById('hs-modal');
+  if (hsModal) hsModal.addEventListener('click', (e) => { if (e.target === hsModal) closeModal('hs-modal'); });
+  const newModal = document.getElementById('new-inv-modal');
+  if (newModal) newModal.addEventListener('click', (e) => { if (e.target === newModal) closeModal('new-inv-modal'); });
+  document.addEventListener('click', (e) => { const dd=document.getElementById('quote-dropdown'); if(dd && !dd.contains(e.target) && e.target.id!=='new-inv-quote') dd.style.display='none'; });
+});
+
+function filterHsCodes(q) {
+  const el = document.getElementById('hs-results');
+  const results = q ? hsCodes.filter(c => c.code.includes(q) || (c.description||'').toLowerCase().includes(q.toLowerCase())).slice(0,30) : hsCodes.slice(0,30);
+  el.innerHTML = results.map(c => `<div style="padding:8px 10px;border-bottom:1px solid #eee;cursor:pointer;font-size:12px;" onclick="closeModal('hs-modal')"><strong>${c.code}</strong> — ${c.description || ''}</div>`).join('') || '<div style="padding:12px;color:#888;font-size:12px;">No results.</div>';
+}
+
+// ============================================================
+// PRINT + PDF
+// ============================================================
+async function getSignatureB64() {
+  const endpoints = [
+    '/portal/invoices/invoice-api.php',
+    '/portal/invoices/po-api.php',
+  ];
+  for (const url of endpoints) {
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'getSignature', auth_user: AUTH.user, auth_pass: AUTH.pass})
+      });
+      const j = await r.json();
+      if (j.success && j.dataUrl) return j.dataUrl;
+      if (j.success && j.url) return j.url;
+    } catch(e) {}
+  }
+  return 'https://ti-kitmeer.com/portal/admin/secure_assets/signature.png';
+}
+
+function buildPrintArea(sigDataUrl) {
+  const inv = gatherCurrentData();
+  const cur = inv.currency || 'USD';
+  const discPct = parseFloat(document.getElementById('tot-discount-pct').value) || 0;
+  const mqOn = document.getElementById('main-q-toggle').checked;
+  const today = new Date(inv.inv_date || new Date()).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  // ── Build all line item rows ──────────────────────────────
+  // Always show ALL items. If MQ is on, TI-MAIN-Q appears as item 1, then all 38 below.
+  let allRows = [];
+
+  if (mqOn) {
+    mqRows.forEach((row, i) => {
+      const rowNet = (row.gross||0) * (1 - (row.discount_pct||0)/100);
+      const discVal = (row.gross||0) - rowNet;
+      // Push main contract line
+      allRows.push({
+        item_num:   row.item_num || 'TI-MAIN-Q',
+        part_no:    row.item_num || 'TI-MAIN-Q',
+        desc:       row.description || '',
+        qty:        1,
+        unit:       'EA',
+        unit_price: row.gross || 0,
+        total:      row.gross || 0,
+        eccn:       '',
+        origin:     inv.country_of_origin || 'USA',
+        isMQ:       true,
+        discount:   row.discount_pct || 0,
+        rowNet:     rowNet,
+        discVal:    discVal,
+        isMainLine: true
+      });
+    });
+  }
+
+  allLineItems.forEach((item, i) => {
+    allRows.push({
+      item_num:   String(item.item_num || ''),
+      part_no:    item.part_no || '',
+      desc:       item.full_description || item.description || '',
+      qty:        item.qty || 1,
+      unit:       item.unit || 'EA',
+      unit_price: item.unit_price || 0,
+      total:      (item.qty||1) * (item.unit_price||0),
+      eccn:       item.eccn || 'EAR99',
+      ncm:        item.ncm || '9023.00.00',
+      origin:     item.origin || 'USA',
+      isMQ:       false,
+      discount:   0
+    });
+  });
+
+  // ── Calculate grand total ─────────────────────────────────
+  let grandTotal = 0;
+  if (mqOn) {
+    // Grand total = sum of MQ net values
+    grandTotal = mqRows.reduce((s,r) => s + (r.gross||0)*(1-(r.discount_pct||0)/100), 0);
+  } else {
+    grandTotal = allLineItems.reduce((s,it) => s + ((it.qty||1)*(it.unit_price||0)), 0);
+    if (discPct > 0) grandTotal = grandTotal * (1 - discPct/100);
+  }
+
+  // ── Build rows HTML ───────────────────────────────────────
+  let rowsHtml = '';
+  allRows.forEach((row, i) => {
+    const bg = i % 2 === 0 ? '#ffffff' : '#f9f9f9';
+    const mqBg = row.isMQ ? 'background:#fffdf2;' : `background:${bg};`;
+
+    rowsHtml += `<tr style="${mqBg}">
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;text-align:center;font-size:10px;vertical-align:top;">${escHtml(row.item_num)}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;font-size:10px;font-weight:700;color:#0a7b8a;vertical-align:top;">${escHtml(row.part_no)}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;font-size:10px;white-space:pre-wrap;">${escHtml(row.desc)}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;text-align:center;font-size:10px;vertical-align:top;">${row.qty}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;text-align:center;font-size:10px;vertical-align:top;">${escHtml(row.unit)}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;text-align:right;font-size:10px;vertical-align:top;">${row.unit_price > 0 ? cur+' '+fmtN(row.unit_price) : '—'}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;text-align:right;font-size:10px;font-weight:${row.total>0?'700':'400'};vertical-align:top;">${row.total > 0 ? cur+' '+fmtN(row.total) : '—'}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;font-size:9px;vertical-align:top;">${row.isMQ ? '' : ('<span style="display:block;">' + escHtml(row.ncm || '9023.00.00') + '</span><span style="display:block;">' + escHtml(row.eccn || 'EAR99') + '</span>')}</td>
+      <td style="padding:6px 5px;border-bottom:1px solid #eee;font-size:9px;vertical-align:top;">${escHtml(row.origin)}</td>
+    </tr>`;
+
+    // If MQ main line, add pricing breakdown rows (Gross / Discount / Net)
+    if (row.isMainLine && row.discount > 0) {
+      rowsHtml += `
+        <tr style="background:#fffdf2;">
+          <td colspan="2"></td>
+          <td style="padding:3px 5px 3px 20px;font-size:9px;font-style:italic;color:#555;"><em>Standard Text:</em><br><em>Pricing details:</em></td>
+          <td colspan="6"></td>
+        </tr>
+        <tr style="background:#fffdf2;">
+          <td colspan="2"></td>
+          <td style="padding:2px 5px 2px 20px;font-size:9px;">Gross Price</td>
+          <td style="padding:2px 5px;text-align:right;font-size:9px;">${fmtN(row.unit_price)}</td>
+          <td style="padding:2px 5px;text-align:center;font-size:9px;">${cur}</td>
+          <td style="padding:2px 5px;font-size:9px;">per 1 EA</td>
+          <td style="padding:2px 5px;text-align:right;font-size:9px;">${fmtN(row.unit_price)}</td>
+          <td colspan="2"></td>
+        </tr>
+        <tr style="background:#fffdf2;">
+          <td colspan="2"></td>
+          <td style="padding:2px 5px 2px 20px;font-size:9px;">Discount % Value</td>
+          <td style="padding:2px 5px;text-align:right;font-size:9px;">${fmtN(row.discount)}-&nbsp;%</td>
+          <td colspan="2"></td>
+          <td style="padding:2px 5px;text-align:right;font-size:9px;color:#c33;">${fmtN(row.discVal)}-</td>
+          <td colspan="2"></td>
+        </tr>
+        <tr style="background:#fffdf2;border-bottom:2px solid #ddd;">
+          <td colspan="2"></td>
+          <td style="padding:2px 5px 6px 20px;font-size:9px;font-weight:700;">Net value incl. disc.</td>
+          <td style="padding:2px 5px;text-align:right;font-size:9px;font-weight:700;">${fmtN(row.rowNet)}</td>
+          <td style="padding:2px 5px;text-align:center;font-size:9px;">${cur}</td>
+          <td style="padding:2px 5px;font-size:9px;">per 1 EA</td>
+          <td style="padding:2px 5px;text-align:right;font-size:9px;font-weight:700;">${fmtN(row.rowNet)}</td>
+          <td colspan="2"></td>
+        </tr>`;
+    }
+  });
+
+  // ── Total row ─────────────────────────────────────────────
+  rowsHtml += `<tr style="background:#0a7b8a;color:white;">
+    <td colspan="6" style="text-align:right;padding:10px 8px;font-weight:700;font-size:12px;">TOTAL INVOICE VALUE</td>
+    <td style="text-align:right;padding:10px 8px;font-weight:700;font-size:14px;">${cur} ${fmtN(grandTotal)}</td>
+    <td colspan="2"></td>
+  </tr>`;
+
+  // ── Header (repeats every page) ───────────────────────────
+  const headerHtml = `<tr><td colspan="9" style="padding-bottom:10px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="width:55%;vertical-align:middle;">
+          <img src="https://ti-kitmeer.com/images/TIlogo.png" style="height:140px;max-width:588px;object-fit:contain;" alt="Technologies International LLC">
+          <div style="font-size:9px;color:#666;margin-top:4px;">3149 Broadway, Suite 16, New York, NY 10027 · USA</div>
+          <div style="font-size:9px;color:#666;">Tel: +1 (212) 217-9795 &nbsp;·&nbsp; www.tieducational.com</div>
+        </td>
+        <td style="text-align:right;vertical-align:top;">
+          <div style="font-size:20px;font-weight:700;color:#0a7b8a;letter-spacing:2px;">COMMERCIAL INVOICE</div>
+          <div style="font-size:11px;color:#333;margin-top:3px;"><strong>${escHtml(inv.inv_number||'')}</strong></div>
+          <div style="font-size:10px;color:#666;">${today}</div>
+          ${inv.po_number ? `<div style="font-size:10px;color:#333;margin-top:2px;"><strong>Client PO: ${escHtml(inv.po_number)}</strong></div>` : ''}
+        </td>
+      </tr>
+    </table>
+    <div style="height:3px;background:#0a7b8a;border-radius:2px;margin-top:6px;"></div>
+  </td></tr>`;
+
+  // ── Footer (repeats every page) ───────────────────────────
+  // Tfoot: visual footer (teal bar, date, company, inv num).
+  // Page numbers come from @page below — no duplication.
+  const footerHtml = `<tr><td colspan="9" style="padding-top:6px;">
+    <div style="border-top:2px solid #0a7b8a;padding-top:5px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:8px;color:#888;min-width:90px;">${today}</span>
+      <span style="text-align:center;flex:1;">
+        <span style="font-size:9px;font-weight:700;color:#0a7b8a;">Technologies International, LLC &nbsp;&middot;&nbsp; tieducational.com</span>
+        <br><span style="font-size:7.5px;color:#999;">3149 Broadway, Suite 16, New York, NY 10027 USA &nbsp;&middot;&nbsp; Tel: +1 (212) 217-9795</span>
+      </span>
+      <span style="font-size:8px;color:#888;min-width:90px;text-align:right;">${escHtml(inv.inv_number||'')}</span>
+    </div>
+  </td></tr>`;
+
+  // ── Parties block ─────────────────────────────────────────
+  const partiesHtml = `<tr><td colspan="9" style="padding-bottom:12px;">
+    <table style="width:100%;border-collapse:collapse;font-size:10px;">
+      <tr>
+        <td style="width:33%;vertical-align:top;padding-right:8px;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:4px;">Bill To / Shipper</div>
+            <div style="font-weight:700;">TECHNOLOGIES INTERNATIONAL, LLC</div>
+            <div style="color:#444;margin-top:2px;white-space:pre-wrap;">3149 Broadway, Suite 16&#10;New York, NY 10027&#10;Tel: +1 (212) 217-9795</div>
+            <div style="margin-top:6px;font-size:9px;font-weight:700;color:#0a7b8a;">Consignee / Bill To</div>
+            <div style="font-weight:700;">${escHtml(inv.client_name||'')}</div>
+            <div style="white-space:pre-wrap;color:#444;margin-top:2px;">${escHtml(inv.client_addr||'')}</div>
+          </div>
+        </td>
+        <td style="width:33%;vertical-align:top;padding-right:8px;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:4px;">Ship To</div>
+            <div style="white-space:pre-wrap;color:#444;">${escHtml(inv.ship_to||'')}</div>
+            ${inv.carrier ? `<div style="margin-top:6px;font-size:9px;color:#666;">Carrier: ${escHtml(inv.carrier)}</div>` : ''}
+          </div>
+        </td>
+        <td style="width:33%;vertical-align:top;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:4px;">End User</div>
+            <div style="white-space:pre-wrap;color:#444;">${escHtml(inv.end_user||'')}</div>
+          </div>
+        </td>
+      </tr>
+      ${inv.manufacturer ? `<tr>
+        <td colspan="3" style="padding-top:8px;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:4px;">Manufacturer</div>
+            <div style="white-space:pre-wrap;color:#444;">${escHtml(inv.manufacturer)}</div>
+          </div>
+        </td>
+      </tr>` : ''}
+    </table>
+  </td></tr>
+  <tr><td colspan="9" style="padding-bottom:10px;">
+    <table style="width:100%;border-collapse:collapse;font-size:10px;">
+      <tr style="background:#0a7b8a;color:white;">
+        <td style="padding:5px 8px;">Invoice #</td>
+        <td style="padding:5px 8px;">Date</td>
+        <td style="padding:5px 8px;">Client PO #</td>
+        <td style="padding:5px 8px;">Payment Terms</td>
+        <td style="padding:5px 8px;">Incoterms</td>
+        <td style="padding:5px 8px;">Country of Origin</td>
+        <td style="padding:5px 8px;">Currency</td>
+      </tr>
+      <tr style="background:#e8f4f6;">
+        <td style="padding:5px 8px;font-weight:700;">${escHtml(inv.inv_number||'')}</td>
+        <td style="padding:5px 8px;">${today}</td>
+        <td style="padding:5px 8px;font-weight:700;">${escHtml(inv.po_number||'—')}</td>
+        <td style="padding:5px 8px;">${escHtml(inv.payment_terms||'—')}</td>
+        <td style="padding:5px 8px;">${escHtml(inv.incoterms||'—')}</td>
+        <td style="padding:5px 8px;">${escHtml(inv.country_of_origin||'USA')}</td>
+        <td style="padding:5px 8px;">${escHtml(cur)}</td>
+      </tr>
+    </table>
+  </td></tr>`;
+
+  // ── Line items table header ───────────────────────────────
+  const liHeaderHtml = `<tr><td colspan="9" style="padding:0;">
+    <table style="width:100%;border-collapse:collapse;font-size:10px;">
+      <thead>
+        <tr style="background:#0a7b8a;color:white;">
+          <th style="padding:6px 5px;width:45px;text-align:center;">Item</th>
+          <th style="padding:6px 5px;width:90px;">Part No.</th>
+          <th style="padding:6px 5px;">Description</th>
+          <th style="padding:6px 5px;width:35px;text-align:center;">Qty</th>
+          <th style="padding:6px 5px;width:35px;text-align:center;">Unit</th>
+          <th style="padding:6px 5px;width:90px;text-align:right;">Unit Price</th>
+          <th style="padding:6px 5px;width:100px;text-align:right;">Extended Price</th>
+          <th style="padding:6px 5px;width:75px;">NCM/HS<br>ECCN</th>
+          <th style="padding:6px 5px;width:50px;">Origin</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+  </td></tr>`;
+
+  // ── Payment + signature block ─────────────────────────────
+  const sigImgTag = sigDataUrl
+    ? `<img src="${sigDataUrl}" alt="Signature" style="height:44px;max-width:170px;display:block;margin:0 0 3px 0">`
+    : '';
+  const payHtml = `<tr style="page-break-inside:avoid;break-inside:avoid;"><td colspan="9" style="padding-top:14px;">
+    <table style="width:100%;border-collapse:collapse;font-size:10px;page-break-inside:avoid;break-inside:avoid;">
+      <tr style="page-break-inside:avoid;break-inside:avoid;">
+        <td style="width:50%;vertical-align:top;padding-right:10px;">
+          <div style="border:1px solid #0a7b8a;border-radius:4px;padding:10px;">
+            <div style="font-size:9px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:6px;">Payment Instructions — ACH / Wire Transfer</div>
+            <div style="font-size:10px;font-weight:700;margin-bottom:6px;">Net Due (ACH Payment)</div>
+            <div style="font-size:9px;font-weight:700;color:#555;margin-bottom:4px;">Wire Payment Instructions:</div>
+            <table style="width:100%;font-size:10px;border-collapse:collapse;">
+              <tr><td style="color:#666;width:42%;padding:2px 0;">Bank SWIFT Code</td><td style="font-weight:700;">${escHtml(inv.bank_swift||'NRTHUS33')}</td></tr>
+              <tr><td style="color:#666;padding:2px 0;">ABA#</td><td>${escHtml(inv.bank_aba||'026013673')}</td></tr>
+              <tr><td style="color:#666;padding:2px 0;vertical-align:top;">For Further Credit To</td><td>TD BANK NA, Wilmington DE</td></tr>
+              <tr><td style="color:#666;padding:2px 0;vertical-align:top;">In Favor of Acct #</td><td style="font-weight:700;">${escHtml(inv.bank_acct||'4247908415')}</td></tr>
+              <tr><td style="color:#666;padding:2px 0;vertical-align:top;">In Favor of Beneficiary</td><td>${escHtml(inv.bank_acct_name||'Technologies International, LLC')}, 3149 Broadway, Suite 16, New York, NY 10027 · Ph: 646.216.9043</td></tr>
+              ${inv.inv_email ? `<tr><td style="color:#666;padding:2px 0;">Submit Invoice To</td><td style="font-size:9px;">${escHtml(inv.inv_email)}</td></tr>` : ''}
+            </table>
+          </div>
+          ${inv.notes ? `<div style="margin-top:8px;font-size:9px;color:#555;border:1px solid #ddd;border-radius:4px;padding:8px;white-space:pre-wrap;">${escHtml(inv.notes)}</div>` : ''}
+        </td>
+        <td style="width:50%;vertical-align:top;padding-left:10px;">
+          <div style="border:1px solid #ddd;border-radius:4px;padding:10px;">
+            <div style="font-size:9px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:6px;">Authorized Signatory</div>
+            ${inv.notes ? `<div style="font-size:9px;color:#555;margin-bottom:8px;white-space:pre-wrap;">${escHtml(inv.notes)}</div>` : ''}
+            <div style="margin-top:8px;padding-top:2px;">
+              ${sigImgTag}
+              <div style="font-weight:700;font-size:11px;border-top:1px solid #333;padding-top:6px;">David W. Hanzal</div>
+              <div style="color:#666;font-size:10px;">President, Technologies International, LLC</div>
+              <div style="color:#666;font-size:10px;margin-top:4px;">Date: ${today}</div>
+            </div>
+            <div style="margin-top:12px;border-top:1px solid #ddd;padding-top:8px;">
+              <div style="font-size:9px;font-weight:700;color:#333;">CERTIFIED TO BE TRUE AND CORRECT. DIVERSION CONTRARY TO U.S. LAW IS PROHIBITED.</div>
+              <div style="font-size:9px;font-weight:700;color:#333;margin-top:4px;">FINAL DESTINATION OF MERCHANDISE: ${escHtml((() => {
+                if (inv.end_user) {
+                  const lines = inv.end_user.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+                  if (lines.length) return lines[lines.length-1].toUpperCase();
+                }
+                return (inv.country_of_origin || 'KINGDOM OF SAUDI ARABIA').toUpperCase();
+              })())}</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>`;
+
+  // ── Assemble with thead/tfoot for per-page header/footer ──
+  return `<style>
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      @page { size: letter; margin: 0.5in 0.5in 0.65in 0.5in; }
+      body { font-family: Arial, sans-serif; font-size: 10px; }
+      thead { display: table-header-group; }
+      tbody { display: table-row-group; }
+      /* page numbers handled by JS */
+    }
+    body { font-family: Arial, sans-serif; font-size: 10px; margin: 0; padding: 20px; }
+    /* page numbers filled by JS */
+  </style>
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>${headerHtml}</thead>
+    <tfoot>${footerHtml}</tfoot>
+    <tbody>
+      ${partiesHtml}
+      ${liHeaderHtml}
+      ${payHtml}
+    </tbody>
+  </table>`;
+}
+
+
+function gatherCurrentData() {
+  return {
+    inv_number: document.getElementById('f-inv-num').value,
+    inv_date: document.getElementById('f-inv-date').value,
+    po_number: document.getElementById('f-po-num').value,
+    quote_number: document.getElementById('f-quote-num').value,
+    payment_terms: document.getElementById('f-payment-terms').value,
+    incoterms: document.getElementById('f-incoterms').value,
+    client_name: document.getElementById('f-client-name').value,
+    client_addr: document.getElementById('f-client-addr').value,
+    ship_to: document.getElementById('f-ship-to').value,
+    end_user: document.getElementById('f-end-user').value,
+    carrier: document.getElementById('f-carrier').value,
+    country_of_origin: document.getElementById('f-origin').value,
+    currency: document.getElementById('f-currency').value,
+    notes: document.getElementById('f-notes').value,
+    manufacturer: document.getElementById('f-manufacturer').value,
+    pay_method: document.getElementById('f-pay-method').value,
+    bank_name: document.getElementById('f-bank-name').value,
+    bank_acct_name: document.getElementById('f-bank-acct-name').value,
+    bank_aba: document.getElementById('f-bank-aba').value,
+    bank_acct: document.getElementById('f-bank-acct').value,
+    bank_swift: document.getElementById('f-bank-swift').value,
+    inv_email: document.getElementById('f-inv-email').value
+  };
+}
+
+async function openPrintWindow(autoPrint) {
+  const invNum = document.getElementById('f-inv-num').value || 'Invoice';
+  const invDateRaw = document.getElementById('f-inv-date').value || '';
+  const invDate = invDateRaw ? new Date(invDateRaw + 'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '';
+  const poNum  = document.getElementById('f-po-num').value || '';
+  const sigDataUrl = await getSignatureB64();
+  const printHTML = buildPrintArea(sigDataUrl);
+  // Inject @page margin CSS dynamically — the ONLY reliable page numbering in Chrome.
+  // counter(page) and counter(pages) in @page margin boxes work natively.
+  const safeInvNum = invNum.replace(/'/g, "\'").replace(/\\/g, '\\\\');
+  const safeDate   = invDate.replace(/'/g, "\'");
+  const safePO     = poNum  ? ('PO: ' + poNum.replace(/'/g, "\'")) : '';
+  const pageStyle = `<style>
+@page {
+  size: letter;
+  margin: 0.5in 0.5in 0.42in 0.5in;
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages) "  ·  ${safeInvNum}";
+    font-family: Arial, sans-serif;
+    font-size: 8px;
+    color: #888;
+    padding-top: 2px;
+  }
+}
+</style>`;
+  // Use Blob so charset is always UTF-8 — fixes garbled PDF issue
+  const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${invNum}</title>
+  ${pageStyle}
+</head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;">
+${printHTML}
+${autoPrint ? `<script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>` : ''}
+</body>
+</html>`;
+  const blob = new Blob([fullHTML], {type: 'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) { showToast('Please allow popups for this site.', 'error'); return; }
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+async function printInvoice() { await openPrintWindow(true); }
+async function downloadPDF()  { await openPrintWindow(true); }
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0); }
+function fmtN(n) { return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0); }
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+
+
+</body></html>

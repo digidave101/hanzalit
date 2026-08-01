@@ -1,0 +1,88 @@
+[
+    {
+        "id": 1,
+        "seq_num": 1,
+        "year": 2026,
+        "base_seq": 1,
+        "revision": 0,
+        "quote_number": "INTL2026-1",
+        "client_id": "cb-039",
+        "client_name": "Bahrain Polytechnic",
+        "country": "Bahrain",
+        "quote_date": "2026-04-11",
+        "currency": "USD",
+        "incoterm": "EXW (Ex Works)",
+        "inco_location": "JEFFERSONVILLE, IN, USA",
+        "divisor": 0.65,
+        "discount_pct": 0,
+        "sections_json": {
+            "sections": [
+                {
+                    "id": "s1",
+                    "name": "Section 1",
+                    "items": [
+                        {
+                            "model_id": "102-VT-XAD",
+                            "title_only": "Vacuum Working Demonstrator - Acrylic",
+                            "intl_dist_net": 3967.5,
+                            "manufacturer": "Bayport International",
+                            "product_class": "Working Demonstrator",
+                            "key_topic": "Fluids",
+                            "intl_market_price_note": null,
+                            "requires_models": [],
+                            "mfr_lead_time": "120 Days",
+                            "qty": 2,
+                            "isSubOf": null,
+                            "subPricing": "included"
+                        }
+                    ]
+                }
+            ]
+        },
+        "created_at": "2026-04-11 19:52:11",
+        "updated_at": "2026-04-11 19:52:14"
+    },
+    {
+        "id": 2,
+        "seq_num": 1,
+        "year": 2026,
+        "base_seq": 1,
+        "revision": 1,
+        "quote_number": "INTL2026-1-R1",
+        "client_id": "cb-039",
+        "client_name": "Bahrain Polytechnic",
+        "country": "Bahrain",
+        "quote_date": "2026-04-11",
+        "currency": "USD",
+        "incoterm": "EXW (Ex Works)",
+        "inco_location": "JEFFERSONVILLE, IN, USA",
+        "divisor": 0.65,
+        "discount_pct": 0,
+        "sections_json": {
+            "sections": [
+                {
+                    "id": "s1",
+                    "name": "Section 1",
+                    "items": [
+                        {
+                            "model_id": "102-VT-XAD",
+                            "title_only": "Vacuum Working Demonstrator - Acrylic",
+                            "intl_dist_net": 3967.5,
+                            "manufacturer": "Bayport International",
+                            "product_class": "Working Demonstrator",
+                            "key_topic": "Fluids",
+                            "intl_market_price_note": null,
+                            "requires_models": [],
+                            "mfr_lead_time": "120 Days",
+                            "qty": 2,
+                            "isSubOf": null,
+                            "subPricing": "included"
+                        }
+                    ]
+                }
+            ]
+        },
+        "created_at": "2026-04-11 19:52:16",
+        "updated_at": "2026-04-11 19:52:16"
+    }
+]

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Projects Overview Report — TI-Kitmeer</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{
+  --blue-dark:#0d2137;--blue-mid:#1a6fa0;--blue-bright:#1a9ad4;
+  --teal:#0db8a8;--teal-light:#2dd4a0;
+  --bg:#eef4f9;--white:#fff;--text:#0d2137;
+  --subtext:#4a6a82;--border:#c8dde8;
+  --won:#0db8a8;--active:#1a9ad4;--lost:#c03030;--pending:#c9a227;--hold:#7a8a9a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── SCREEN HEADER ── */
+.screen-hdr{background:var(--blue-dark);padding:0 36px;height:68px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:3px solid var(--teal);position:sticky;top:0;z-index:100;}
+.logos{display:flex;align-items:center;gap:22px;}
+.logo-div{width:1px;height:44px;background:rgba(255,255,255,.15);}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.hdr-tag{font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--teal-light);font-weight:700;
+  background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);
+  padding:4px 10px;border-radius:4px;}
+.back-btn{font-size:11px;color:#a8c8d8;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.07);padding:6px 12px;border-radius:5px;
+  text-decoration:none;font-weight:600;}
+.back-btn:hover{background:rgba(255,255,255,.14);color:#fff;}
+.print-btn{background:linear-gradient(135deg,var(--blue-mid),var(--teal));
+  border:none;border-radius:7px;padding:8px 22px;color:#fff;
+  font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  letter-spacing:.04em;transition:opacity .15s;}
+.print-btn:hover{opacity:.88;}
+
+/* ── STATE ── */
+.state{display:flex;align-items:center;justify-content:center;
+  min-height:calc(100vh - 68px);flex-direction:column;gap:14px;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);
+  border-top-color:var(--blue-bright);border-radius:50%;
+  animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── REPORT WRAPPER ── */
+.rpt-wrap{max-width:1000px;margin:32px auto 56px;padding:0 24px;}
+.doc{background:var(--white);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 6px 32px rgba(13,33,55,.12);overflow:hidden;}
+
+/* ── DOC HEADER ── */
+.doc-hdr{background:var(--blue-dark);padding:32px 44px 26px;
+  border-bottom:4px solid var(--teal);}
+.doc-logos{display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+.doc-logo-div{width:1px;height:34px;background:rgba(255,255,255,.2);}
+.doc-title{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;
+  line-height:1;margin-bottom:6px;}
+.doc-subtitle{font-size:13px;color:var(--teal-light);font-weight:600;margin-bottom:4px;}
+.doc-context{font-size:11px;color:#4a6a82;margin-top:10px;
+  display:flex;gap:20px;flex-wrap:wrap;}
+.ctx-pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  padding:4px 12px;border-radius:12px;font-size:10px;color:#a8c8d8;font-weight:600;}
+
+/* ── METRICS STRIP ── */
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);
+  border-bottom:1px solid var(--border);}
+.metric{padding:18px 20px;border-right:1px solid var(--border);text-align:center;}
+.metric:last-child{border-right:none;}
+.met-lbl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--subtext);margin-bottom:6px;}
+.met-val{font-size:22px;font-weight:900;color:var(--blue-dark);line-height:1;margin-bottom:2px;}
+.met-val.c-teal{color:var(--teal);}
+.met-val.c-mid{color:var(--blue-mid);}
+.met-val.c-won{color:var(--won);}
+.met-val.c-lost{color:var(--lost);}
+.met-val.c-pend{color:var(--pending);}
+.met-sub{font-size:9px;color:var(--subtext);}
+
+/* ── SECTION ── */
+.sec{padding:28px 44px;border-bottom:1px solid var(--border);}
+.sec:last-child{border-bottom:none;}
+.sec-title{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;
+  color:var(--subtext);margin-bottom:20px;padding-bottom:10px;
+  border-bottom:2px solid var(--bg);
+  display:flex;align-items:center;gap:10px;}
+.sec-title::before{content:'';width:4px;height:16px;
+  background:linear-gradient(to bottom,var(--blue-mid),var(--teal));
+  border-radius:2px;flex-shrink:0;}
+
+/* ── CHARTS ROW ── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.chart-box{background:#f4f8fc;border:1px solid var(--border);border-radius:8px;
+  padding:6px;overflow:hidden;}
+.chart-box svg{display:block;width:100%;}
+
+/* ── FINANCIAL SUMMARY ── */
+.fin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.fin-card{background:#f4f8fc;border:1px solid var(--border);border-radius:10px;
+  padding:20px 22px;}
+.fin-card-label{font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--subtext);margin-bottom:8px;}
+.fin-card-value{font-size:26px;font-weight:900;color:var(--blue-dark);line-height:1;
+  margin-bottom:4px;}
+.fin-card-value.teal{color:var(--teal);}
+.fin-card-value.mid{color:var(--blue-mid);}
+.fin-card-sub{font-size:11px;color:var(--subtext);}
+
+/* ── PROJECT TABLE ── */
+.proj-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.proj-tbl th{background:#f4f8fc;color:var(--subtext);font-size:9px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;padding:10px 12px;text-align:left;
+  border-bottom:2px solid var(--border);}
+.proj-tbl td{padding:11px 12px;border-bottom:1px solid #f0f4f8;vertical-align:middle;}
+.proj-tbl tr:last-child td{border-bottom:none;}
+.proj-tbl tr:hover td{background:#f9fbfd;}
+.proj-tbl tr.group-hdr td{background:#f0f6fb;font-size:10px;font-weight:700;
+  color:var(--blue-mid);letter-spacing:1px;text-transform:uppercase;
+  padding:7px 12px;border-bottom:1px solid var(--border);}
+.qnum{font-weight:700;color:var(--blue-mid);font-size:12px;}
+.price-val{font-weight:800;color:var(--blue-mid);white-space:nowrap;}
+.cost-val{color:var(--subtext);white-space:nowrap;}
+.rev-count{background:var(--blue-dark);color:#fff;font-size:9px;font-weight:800;
+  padding:2px 7px;border-radius:8px;}
+.note-txt{font-size:11px;color:var(--subtext);font-style:italic;
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* STATUS BADGES */
+.bs{display:inline-block;padding:2px 9px;border-radius:10px;
+  font-size:10px;font-weight:700;letter-spacing:.5px;}
+.bs-active {background:#e3f4fb;color:#1a6fa0;border:1px solid #b8dff0;}
+.bs-won    {background:#e3f9f6;color:#0a8a7a;border:1px solid #b0e8e0;}
+.bs-lost   {background:#fde8e8;color:#a02020;border:1px solid #f0b8b8;}
+.bs-pending{background:#fef8e3;color:#8a6a00;border:1px solid #f0d880;}
+.bs-onhold {background:#f0f0f0;color:#5a6a7a;border:1px solid #d0d8e0;}
+
+/* ── PRICING DETAIL ── */
+.pricing-project{margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.pricing-project:last-child{margin-bottom:0;}
+.pp-head{background:#f4f8fc;padding:12px 18px;display:flex;justify-content:space-between;
+  align-items:center;border-bottom:1px solid var(--border);}
+.pp-qnum{font-size:13px;font-weight:800;color:var(--blue-dark);}
+.pp-client{font-size:11px;color:var(--subtext);margin-top:2px;}
+.pp-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.pp-tbl th{background:#f9fbfd;color:var(--subtext);font-size:9px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;padding:8px 14px;
+  text-align:left;border-bottom:1px solid var(--border);}
+.pp-tbl td{padding:10px 14px;border-bottom:1px solid #f4f8fc;}
+.pp-tbl tr:last-child td{border-bottom:none;}
+.mini-bar-wrap{display:flex;align-items:center;gap:8px;}
+.mini-bar-bg{background:#e8eef4;border-radius:3px;height:8px;flex:1;overflow:hidden;}
+.mini-bar-fill{height:100%;border-radius:3px;}
+
+/* ── DOC FOOTER ── */
+.doc-ftr{background:#f4f8fc;border-top:1px solid var(--border);
+  padding:16px 44px;display:flex;justify-content:space-between;align-items:center;}
+.doc-ftr-l{font-size:10px;color:var(--subtext);line-height:1.7;}
+.doc-ftr-r{font-size:9px;color:#a8c8d8;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;}
+  .screen-hdr{display:none;}
+  .rpt-wrap{margin:0;padding:0;max-width:100%;}
+  .doc{border:none;border-radius:0;box-shadow:none;}
+  .metrics{page-break-inside:avoid;}
+  .sec{page-break-inside:avoid;}
+  .pricing-project{page-break-inside:avoid;}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="screen-hdr">
+  <div class="logos">
+    <a href="https://www.tieducational.com" target="_blank" rel="noopener">
+      <img src="/TIlogo.png" alt="TI" style="height:52px;width:auto;mix-blend-mode:lighten;">
+    </a>
+    <div class="logo-div"></div>
+    <a href="https://www.kitmeer.com" target="_blank" rel="noopener">
+      <img src="/KitmeerLogo.png" alt="Kitmeer" style="height:38px;width:auto;mix-blend-mode:lighten;">
+    </a>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-tag">Overview Report</div>
+    <a class="back-btn" href="/portal/admin/projects.html">← Projects</a>
+    <button class="print-btn" onclick="window.print()">🖨 Save as PDF</button>
+  </div>
+</div>
+
+<div class="state" id="stateLoad"><div class="spinner"></div><p>Building report…</p></div>
+<div class="state" id="stateErr" style="display:none"><p id="errMsg">No projects to report.</p></div>
+
+<div class="rpt-wrap" id="rptWrap" style="display:none;">
+  <div class="doc" id="docRoot"></div>
+</div>
+
+<script>
+var API = '/portal/admin/projects-api.php';
+
+/* ── UTILS ── */
+function fmtN(n){return parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtShort(n){n=parseFloat(n||0);if(n>=1000000)return '$'+(n/1000000).toFixed(2)+'M';if(n>=1000)return '$'+(n/1000).toFixed(0)+'K';return '$'+Math.round(n);}
+function fmtDate(d){if(!d)return '—';var p=d.split('-');if(p.length<3)return d;var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return m[parseInt(p[1])-1]+' '+parseInt(p[2])+', '+p[0];}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function statusCls(st){var m={active:'bs-active',won:'bs-won',lost:'bs-lost',pending:'bs-pending','on hold':'bs-onhold'};return m[(st||'active').toLowerCase()]||'bs-active';}
+function statusColor(st){var m={Active:'#1a9ad4',Won:'#0db8a8',Lost:'#c03030',Pending:'#c9a227','On Hold':'#7a8a9a'};return m[st]||'#1a9ad4';}
+function latestPrice(p){if(!p.revisions||!p.revisions.length)return parseFloat(p.r1NetCost||0);var s=p.revisions.slice().sort(function(a,b){return b.rNum-a.rNum;});for(var i=0;i<s.length;i++){if(parseFloat(s[i].price||0)>0)return parseFloat(s[i].price);}return parseFloat(p.r1NetCost||0);}
+function latestRev(p){if(!p.revisions||!p.revisions.length)return null;var s=p.revisions.slice().sort(function(a,b){return b.rNum-a.rNum;});for(var i=0;i<s.length;i++){if(parseFloat(s[i].price||0)>0)return s[i];}return null;}
+
+/* ── BOOT ── */
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var ids    = (params.get('ids')||'').split(',').filter(Boolean);
+  var year   = params.get('year')||'all';
+  var status = params.get('status')||'';
+  var search = params.get('search')||'';
+
+  fetch(API+'?action=list_projects')
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(!res.ok) throw new Error('API error');
+      var all = res.projects||[];
+      var projects = ids.length
+        ? all.filter(function(p){return ids.indexOf(p.id)>=0;})
+        : all;
+      if(!projects.length) throw new Error('No projects match the current filter.');
+      render(projects, {year:year,status:status,search:search});
+    })
+    .catch(function(e){
+      document.getElementById('stateLoad').style.display='none';
+      document.getElementById('stateErr').style.display='flex';
+      document.getElementById('errMsg').textContent=e.message||'Failed to load.';
+    });
+})();
+
+/* ── RENDER ── */
+function render(projects, ctx){
+  document.getElementById('stateLoad').style.display='none';
+  document.getElementById('rptWrap').style.display='block';
+
+  // ── COMPUTE STATS ──
+  var statCounts={Active:0,Won:0,Lost:0,Pending:0,'On Hold':0};
+  var countryCounts={};
+  var totalNet=0, totalQuoted=0, pricedCount=0;
+  var yearCounts={};
+
+  projects.forEach(function(p){
+    var st=(p.status||'Active');
+    statCounts[st]=(statCounts[st]||0)+1;
+
+    var co=p.country||'Other';
+    countryCounts[co]=(countryCounts[co]||0)+1;
+
+    var yr=p.date?(p.date.split('-')[0]):'Unknown';
+    yearCounts[yr]=(yearCounts[yr]||0)+1;
+
+    var nc=parseFloat(p.r1NetCost||0);
+    var lp=latestPrice(p);
+    if(nc>0) totalNet+=nc;
+    if(lp>0){totalQuoted+=lp;pricedCount++;}
+  });
+
+  var winRate = (statCounts.Won+statCounts.Lost)>0
+    ? Math.round(statCounts.Won/(statCounts.Won+statCounts.Lost)*100) : null;
+  var avgDeal = pricedCount>0 ? totalQuoted/pricedCount : 0;
+
+  // ── BUILD HTML ──
+  var html='';
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // Sort countries descending
+  var countryList=Object.keys(countryCounts).sort(function(a,b){return countryCounts[b]-countryCounts[a];});
+
+  /* ═══ HEADER ═══ */
+  var ctxPills='';
+  if(ctx.year&&ctx.year!=='all') ctxPills+='<span class="ctx-pill">📅 '+esc(ctx.year==='older'?'2019 & Earlier':ctx.year)+'</span>';
+  if(ctx.status) ctxPills+='<span class="ctx-pill">Status: '+esc(ctx.status)+'</span>';
+  if(ctx.search) ctxPills+='<span class="ctx-pill">Search: "'+esc(ctx.search)+'"</span>';
+  if(!ctxPills) ctxPills='<span class="ctx-pill">All Projects</span>';
+
+  html+='<div class="doc-hdr">';
+  html+='  <div class="doc-logos">';
+  html+='    <img src="/TIlogo.png" alt="TI" style="height:40px;mix-blend-mode:lighten;">';
+  html+='    <div class="doc-logo-div"></div>';
+  html+='    <img src="/KitmeerLogo.png" alt="Kitmeer" style="height:30px;mix-blend-mode:lighten;">';
+  html+='  </div>';
+  html+='  <div class="doc-title">Project Portfolio Overview</div>';
+  html+='  <div class="doc-subtitle">Technologies International LLC &amp; Kitmeer — MENA Technical Education</div>';
+  html+='  <div class="doc-context">'+ctxPills;
+  html+='    <span class="ctx-pill">'+projects.length+' Project'+(projects.length!==1?'s':'')+'</span>';
+  html+='    <span class="ctx-pill">Generated: '+dateStr+'</span>';
+  html+='  </div>';
+  html+='</div>';
+
+  /* ═══ METRICS STRIP ═══ */
+  html+='<div class="metrics">';
+  html+=metricTile('Total Projects', projects.length, '', 'c-mid');
+  html+=metricTile('Won', statCounts.Won, 'closed deals', 'c-won');
+  html+=metricTile('Active', statCounts.Active, 'in progress', 'c-teal');
+  html+=metricTile('Pending', statCounts.Pending+(statCounts['On Hold']||0), 'pending/on hold', 'c-pend');
+  html+=metricTile('Lost', statCounts.Lost, 'not awarded', 'c-lost');
+  html+=metricTile('Win Rate', winRate!==null?winRate+'%':'—', winRate!==null?'of closed deals':'insufficient data', 'c-teal');
+  html+='</div>';
+
+  /* ═══ CHARTS ═══ */
+  html+='<div class="sec">';
+  html+='  <div class="sec-title">Distribution Analysis</div>';
+  html+='  <div class="charts-row">';
+  html+='    <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--subtext);margin-bottom:10px;">By Status</div>';
+  html+='      <div class="chart-box">'+buildStatusChart(statCounts, projects.length)+'</div></div>';
+  html+='    <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--subtext);margin-bottom:10px;">By Country</div>';
+  html+='      <div class="chart-box">'+buildCountryChart(countryCounts, projects.length)+'</div></div>';
+  html+='  </div>';
+  html+='</div>';
+
+  /* ═══ FINANCIAL SUMMARY ═══ */
+  html+='<div class="sec">';
+  html+='  <div class="sec-title">Financial Summary</div>';
+  html+='  <div class="fin-grid">';
+  html+='    <div class="fin-card"><div class="fin-card-label">Total Quoted Value</div>';
+  html+='      <div class="fin-card-value mid">'+(totalQuoted>0?fmtShort(totalQuoted):'—')+'</div>';
+  html+='      <div class="fin-card-sub">'+(pricedCount>0?pricedCount+' project'+(pricedCount!==1?'s':'')+' with pricing':'No pricing recorded yet')+'</div></div>';
+  html+='    <div class="fin-card"><div class="fin-card-label">Total Net Cost (TI)</div>';
+  html+='      <div class="fin-card-value">'+(totalNet>0?fmtShort(totalNet):'—')+'</div>';
+  html+='      <div class="fin-card-sub">Aggregate R1 baseline</div></div>';
+  html+='    <div class="fin-card"><div class="fin-card-label">Average Deal Size</div>';
+  html+='      <div class="fin-card-value teal">'+(avgDeal>0?fmtShort(avgDeal):'—')+'</div>';
+  html+='      <div class="fin-card-sub">Across priced projects</div></div>';
+  html+='  </div>';
+  html+='</div>';
+
+  /* ═══ YEAR BREAKDOWN ═══ */
+  var years=Object.keys(yearCounts).sort(function(a,b){return b.localeCompare(a);});
+  if(years.length>1){
+    html+='<div class="sec">';
+    html+='  <div class="sec-title">Activity by Year</div>';
+    html+='  <div class="chart-box">'+buildYearChart(yearCounts)+'</div>';
+    html+='</div>';
+  }
+
+  /* ═══ COMPLETE PROJECT TABLE ═══ */
+  html+='<div class="sec">';
+  html+='  <div class="sec-title">Complete Project List</div>';
+  html+=buildProjectTable(projects);
+  html+='</div>';
+
+  /* ═══ PRICING DETAIL ═══ */
+  var pricedProjects=projects.filter(function(p){
+    return parseFloat(p.r1NetCost||0)>0||((p.revisions||[]).some(function(r){return parseFloat(r.price||0)>0;}));
+  });
+  if(pricedProjects.length){
+    html+='<div class="sec">';
+    html+='  <div class="sec-title">Pricing Detail — Projects with Recorded Values</div>';
+    pricedProjects.forEach(function(p){ html+=buildPricingCard(p); });
+    html+='</div>';
+  }
+
+  /* ═══ FOOTER ═══ */
+  html+='<div class="doc-ftr">';
+  html+='  <div class="doc-ftr-l">';
+  html+='    <strong>Technologies International LLC &amp; Kitmeer</strong><br>';
+  html+='    Report generated: '+dateStr+' &nbsp;·&nbsp; '+projects.length+' projects included';
+  html+='  </div>';
+  html+='  <div class="doc-ftr-r">Confidential</div>';
+  html+='</div>';
+
+  document.getElementById('docRoot').innerHTML=html;
+  document.title='Overview Report ('+projects.length+' projects) — TI-Kitmeer';
+}
+
+/* ── METRIC TILE ── */
+function metricTile(lbl,val,sub,cls){
+  return '<div class="metric"><div class="met-lbl">'+esc(lbl)+'</div>'
+    +'<div class="met-val '+cls+'">'+esc(String(val))+'</div>'
+    +(sub?'<div class="met-sub">'+esc(sub)+'</div>':'')
+    +'</div>';
+}
+
+/* ── STATUS CHART (horizontal bars with mini donut summary) ── */
+function buildStatusChart(counts, total){
+  var statuses=['Active','Won','Pending','Lost','On Hold'];
+  var colors={Active:'#1a9ad4',Won:'#0db8a8',Pending:'#c9a227',Lost:'#c03030','On Hold':'#7a8a9a'};
+  var W=420, barH=24, gap=10, padL=72, padR=60, padT=14, rows=statuses.filter(function(s){return (counts[s]||0)>0;});
+  var H=padT*2+rows.length*(barH+gap);
+  var maxCount=Math.max.apply(null,rows.map(function(s){return counts[s]||0;}));
+
+  var svg='<svg width="100%" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="font-family:\'Segoe UI\',sans-serif">';
+  svg+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#f4f8fc" rx="6"/>';
+
+  rows.forEach(function(st,i){
+    var cnt=counts[st]||0;
+    var y=padT+i*(barH+gap);
+    var bw=maxCount>0?(cnt/maxCount)*(W-padL-padR):0;
+    var pct=total>0?Math.round(cnt/total*100):0;
+    var col=colors[st]||'#1a9ad4';
+
+    // Label
+    svg+='<text x="'+(padL-8)+'" y="'+(y+barH/2+4)+'" text-anchor="end"'
+      +' font-size="11" font-weight="700" fill="#0d2137">'+esc(st)+'</text>';
+
+    // Bar BG
+    svg+='<rect x="'+padL+'" y="'+y+'" width="'+(W-padL-padR)+'" height="'+barH+'" rx="3" fill="#e4eef6"/>';
+
+    // Bar fill
+    if(bw>0){
+      svg+='<rect x="'+padL+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+barH+'" rx="3" fill="'+col+'" opacity="0.85"/>';
+    }
+
+    // Count + pct
+    svg+='<text x="'+(padL+bw+6)+'" y="'+(y+barH/2+4)+'"'
+      +' font-size="11" font-weight="800" fill="#0d2137">'+cnt+'</text>';
+    svg+='<text x="'+(W-8)+'" y="'+(y+barH/2+4)+'" text-anchor="end"'
+      +' font-size="10" fill="#7a9aaa">'+pct+'%</text>';
+  });
+
+  svg+='</svg>';
+  return svg;
+}
+
+/* ── COUNTRY CHART ── */
+function buildCountryChart(counts, total){
+  var sorted=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];}).slice(0,8);
+  var W=420, barH=22, gap=8, padL=130, padR=56, padT=12;
+  var H=padT*2+sorted.length*(barH+gap);
+  var maxCount=Math.max.apply(null,sorted.map(function(c){return counts[c];}));
+  var flagMap={'Saudi Arabia':'🇸🇦','UAE':'🇦🇪','Qatar':'🇶🇦','Kuwait':'🇰🇼','Bahrain':'🇧🇭','Oman':'🇴🇲','Egypt':'🇪🇬','Jordan':'🇯🇴','Libya':'🇱🇾','Morocco':'🇲🇦','Algeria':'🇩🇿','Lebanon':'🇱🇧','United States':'🇺🇸'};
+
+  var svg='<svg width="100%" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="font-family:\'Segoe UI\',sans-serif">';
+  svg+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#f4f8fc" rx="6"/>';
+
+  sorted.forEach(function(co,i){
+    var cnt=counts[co];
+    var y=padT+i*(barH+gap);
+    var bw=maxCount>0?(cnt/maxCount)*(W-padL-padR):0;
+    var shade=i===0?'#0d2137':i===1?'#1a6fa0':i===2?'#1a9ad4':'#7aaac8';
+    var flag=flagMap[co]||'🌍';
+
+    svg+='<text x="'+(padL-8)+'" y="'+(y+barH/2+4)+'" text-anchor="end"'
+      +' font-size="10" font-weight="600" fill="#0d2137">'+flag+' '+esc(co)+'</text>';
+
+    svg+='<rect x="'+padL+'" y="'+y+'" width="'+(W-padL-padR)+'" height="'+barH+'" rx="3" fill="#e4eef6"/>';
+    if(bw>0){
+      svg+='<rect x="'+padL+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+barH+'" rx="3" fill="'+shade+'" opacity="0.85"/>';
+    }
+    svg+='<text x="'+(padL+bw+6)+'" y="'+(y+barH/2+4)+'"'
+      +' font-size="11" font-weight="800" fill="#0d2137">'+cnt+'</text>';
+    var pct=total>0?Math.round(cnt/total*100):0;
+    svg+='<text x="'+(W-6)+'" y="'+(y+barH/2+4)+'" text-anchor="end"'
+      +' font-size="10" fill="#7a9aaa">'+pct+'%</text>';
+  });
+
+  svg+='</svg>';
+  return svg;
+}
+
+/* ── YEAR CHART ── */
+function buildYearChart(yearCounts){
+  var years=Object.keys(yearCounts).sort(function(a,b){return a.localeCompare(b);});
+  var maxCount=Math.max.apply(null,years.map(function(y){return yearCounts[y];}));
+  var W=900, barH=28, gap=8, padL=80, padR=30, padT=16;
+  var H=padT*2+years.length*(barH+gap);
+
+  var svg='<svg width="100%" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="font-family:\'Segoe UI\',sans-serif">';
+  svg+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#f4f8fc" rx="6"/>';
+
+  years.forEach(function(yr,i){
+    var cnt=yearCounts[yr];
+    var y=padT+i*(barH+gap);
+    var bw=maxCount>0?(cnt/maxCount)*(W-padL-padR):0;
+    var col=yr==='2026'?'#0d2137':yr==='2025'?'#1a6fa0':yr==='2024'?'#1a9ad4':'#7aaac8';
+
+    svg+='<text x="'+(padL-10)+'" y="'+(y+barH/2+4)+'" text-anchor="end"'
+      +' font-size="12" font-weight="700" fill="#0d2137">'+esc(yr)+'</text>';
+    svg+='<rect x="'+padL+'" y="'+y+'" width="'+(W-padL-padR)+'" height="'+barH+'" rx="3" fill="#e4eef6"/>';
+    if(bw>0){
+      svg+='<rect x="'+padL+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+barH+'" rx="3" fill="'+col+'" opacity="0.88"/>';
+    }
+    svg+='<text x="'+(padL+bw+8)+'" y="'+(y+barH/2+4)+'"'
+      +' font-size="12" font-weight="800" fill="#0d2137">'+cnt+' project'+(cnt!==1?'s':'')+'</text>';
+  });
+
+  svg+='</svg>';
+  return svg;
+}
+
+/* ── PROJECT TABLE ── */
+function buildProjectTable(projects){
+  // Group by year
+  var byYear={};
+  projects.forEach(function(p){
+    var yr=p.date?(p.date.split('-')[0]):'Unknown';
+    if(!byYear[yr]) byYear[yr]=[];
+    byYear[yr].push(p);
+  });
+  var years=Object.keys(byYear).sort(function(a,b){return b.localeCompare(a);});
+
+  var html='<table class="proj-tbl">';
+  html+='<thead><tr>'
+    +'<th>Quote #</th><th>Date</th><th>Client</th><th>Country</th>'
+    +'<th>Equipment</th><th>Status</th><th>Revisions</th>'
+    +'<th>Net Cost</th><th>Latest Price</th><th>Notes</th>'
+    +'</tr></thead><tbody>';
+
+  years.forEach(function(yr){
+    var yrProjects=byYear[yr];
+    var yrTotal=0;
+    yrProjects.forEach(function(p){var lp=latestPrice(p);if(lp>0)yrTotal+=lp;});
+
+    // Year group row
+    html+='<tr class="group-hdr"><td colspan="10">📅 '+esc(yr)
+      +' &nbsp;·&nbsp; '+yrProjects.length+' project'+(yrProjects.length!==1?'s':'')
+      +(yrTotal>0?' &nbsp;·&nbsp; Total Value: '+fmtShort(yrTotal):'')
+      +'</td></tr>';
+
+    // Sort by date desc within year
+    yrProjects.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).forEach(function(p){
+      var lr=latestRev(p);
+      var lp=latestPrice(p);
+      var nc=parseFloat(p.r1NetCost||0);
+      var revCount=(p.revisions||[]).length;
+
+      html+='<tr>';
+      html+='<td class="qnum">'+esc(p.quoteNum||'—')+'</td>';
+      html+='<td style="white-space:nowrap;font-size:11px;">'+fmtDate(p.date)+'</td>';
+      html+='<td style="font-weight:600;">'+esc(p.clientName||'—')+'</td>';
+      html+='<td style="font-size:11px;">'+esc(p.country||'—')+'</td>';
+      html+='<td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(p.equipment||'')+'">'+esc(p.equipment||'—')+'</td>';
+      html+='<td><span class="bs '+statusCls(p.status)+'">'+esc(p.status||'Active')+'</span></td>';
+      html+='<td style="text-align:center;">'
+        +(revCount>0?'<span class="rev-count">R1–R'+(revCount+1)+'</span>':'<span style="color:#b0c4d0;font-size:11px;">R1 only</span>')
+        +'</td>';
+      html+='<td class="cost-val">'+(nc>0?'$'+fmtN(nc):'<span style="color:#c8d8e4;">—</span>')+'</td>';
+      html+='<td class="price-val">'+(lp>0&&(lr||nc>0)?'$'+fmtN(lp)+(lr?' <span style="color:#9abaca;font-size:10px;font-weight:400;">(R'+lr.rNum+')</span>':''):'<span style="color:#c8d8e4;font-weight:400;">—</span>')+'</td>';
+      html+='<td class="note-txt" title="'+esc(p.notes||'')+'">'+esc(p.notes||'—')+'</td>';
+      html+='</tr>';
+    });
+  });
+
+  html+='</tbody></table>';
+  return html;
+}
+
+/* ── PRICING CARD ── */
+function buildPricingCard(p){
+  var revisions=[];
+  if(parseFloat(p.r1NetCost||0)>0){
+    revisions.push({label:'R1',val:parseFloat(p.r1NetCost),isNet:true,notes:'Net cost to TI',div:'—'});
+  }
+  for(var i=2;i<=6;i++){
+    var r=(p.revisions||[]).find(function(x){return x.rNum===i;});
+    if(r&&parseFloat(r.price||0)>0){
+      revisions.push({label:'R'+i,val:parseFloat(r.price),isNet:false,notes:r.notes||'',div:r.divisor||'—'});
+    }
+  }
+  if(!revisions.length) return '';
+
+  var maxVal=Math.max.apply(null,revisions.map(function(r){return r.val;}));
+  var statusCl=statusCls(p.status||'Active');
+  var sCo=statusColor(p.status||'Active');
+
+  var html='<div class="pricing-project">';
+  html+='<div class="pp-head">';
+  html+='  <div>';
+  html+='    <div class="pp-qnum">'+esc(p.quoteNum||'—')
+    +' &nbsp;<span class="bs '+statusCl+'">'+esc(p.status||'Active')+'</span></div>';
+  html+='    <div class="pp-client">'+esc(p.clientName||'—')+' &nbsp;·&nbsp; '+esc(p.country||'—')+'</div>';
+  html+='  </div>';
+  html+='  <div style="text-align:right;font-size:11px;color:var(--subtext);">'+esc(p.equipment||'—')+'</div>';
+  html+='</div>';
+
+  html+='<table class="pp-tbl"><thead><tr>'
+    +'<th>Rev.</th><th>Value</th><th>Divisor</th><th>Progress Bar</th><th>Notes</th>'
+    +'</tr></thead><tbody>';
+
+  var prevVal=0;
+  revisions.forEach(function(r,idx){
+    var barPct=maxVal>0?(r.val/maxVal*100):0;
+    var barCol=r.isNet?'#4a6a82':'#1a9ad4';
+    var chgHtml='';
+    if(idx>0&&prevVal>0){
+      var chg=((r.val-prevVal)/prevVal*100).toFixed(1);
+      var isUp=parseFloat(chg)>=0;
+      chgHtml=' <span style="color:'+(isUp?'#1a7a40':'#c03030')+';font-weight:700;font-size:10px;">'+(isUp?'▲+':'▼')+chg+'%</span>';
+    }
+
+    html+='<tr>';
+    html+='<td><span class="rev-count" style="background:'+(r.isNet?'#4a6a82':'#0d2137')+'">'+esc(r.label)+'</span>'+(r.isNet?' <span style="font-size:9px;color:#9abaca;">net</span>':'')+'</td>';
+    html+='<td style="font-weight:800;color:var(--blue-mid);white-space:nowrap;">$'+fmtN(r.val)+chgHtml+'</td>';
+    html+='<td style="color:var(--subtext);">'+esc(r.div)+'</td>';
+    html+='<td style="min-width:160px;"><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:'+barPct.toFixed(1)+'%;background:'+barCol+';"></div></div><span style="font-size:10px;color:#9abaca;white-space:nowrap;">'+Math.round(barPct)+'%</span></div></td>';
+    html+='<td style="font-size:11px;color:var(--subtext);font-style:italic;">'+esc(r.notes||'—')+'</td>';
+    html+='</tr>';
+
+    prevVal=r.val;
+  });
+
+  html+='</tbody></table></div>';
+  return html;
+}
+</script>
+</body>
+</html>

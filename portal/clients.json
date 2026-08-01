@@ -1,0 +1,121 @@
+[
+    {
+        "name": "HMMME",
+        "org": "Training Department",
+        "code": "hmmme-n6vp",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "BAE Systems",
+        "org": "Procurment and Training Department",
+        "code": "baesyste-5ldt",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "SATTAM University Bid Mechatronics",
+        "org": "Engineering",
+        "code": "sattamun-mz8z",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "SATTAM University Complete Package",
+        "org": "Engineering",
+        "code": "sattamun-ojup",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "Fady Degheidy",
+        "org": "Boss Man",
+        "code": "fadydegh-9rds",
+        "country": "UAE",
+        "status": "active"
+    },
+    {
+        "name": "STEAM SOFTWARD",
+        "org": "STEAM",
+        "code": "steamsof-9k30",
+        "country": "Other",
+        "status": "active"
+    },
+    {
+        "name": "Khalifa Abdulmohsin Al Saif Group Company",
+        "org": "PROCURMENT",
+        "code": "khalifaa-26kt",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "BAE Systems Qatar",
+        "org": "Military",
+        "code": "baesyste-cdlc",
+        "country": "Qatar",
+        "status": "active"
+    },
+    {
+        "name": "Sample Siminds",
+        "org": "Science",
+        "code": "samplesi-8k2u",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "Fady Internal",
+        "org": "Inhouse",
+        "code": "fadyinte-o8ec",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "QASSIM UNIVERSITY",
+        "org": "Education",
+        "code": "qassimun-5zgj",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "Integrated EG Company",
+        "org": "Education",
+        "code": "integrat-nk73",
+        "country": "Egypt",
+        "status": "active"
+    },
+    {
+        "name": "Arab Engineers",
+        "org": "Engineering",
+        "code": "arabengi-5b5k",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "El Seif for Operation and Maintenance Co. (ESOM)",
+        "org": "Engineering",
+        "code": "elseif-7shb",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "INDUSTRIAL EG COMPANY",
+        "org": "Procurment and Training",
+        "code": "industri-msar",
+        "country": "Egypt",
+        "status": "active"
+    },
+    {
+        "name": "CENTER OF EXCELLENCE PROGRAMS",
+        "org": "",
+        "code": "centerof-veof",
+        "country": "Saudi Arabia",
+        "status": "active"
+    },
+    {
+        "name": "TAG",
+        "org": "Education",
+        "code": "tag-koyg",
+        "country": "United States",
+        "status": "active"
+    }
+]
