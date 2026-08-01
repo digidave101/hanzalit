@@ -1,0 +1,25 @@
+{
+    "counters": {
+        "TI-AUTH-2026": 1
+    },
+    "documents": [
+        {
+            "id": "doc6a2bc57341e25",
+            "type": "ma",
+            "type_label": "Manufacturer's Authorization Letter",
+            "ref": "TI-AUTH-2026-001",
+            "year": "2026",
+            "party": "Avientek, LIU#6, Office - A4, A5 & A6, Dubai Silicon Oasis, Dubai – UAE",
+            "fields": {
+                "doc_date": "2026-06-12",
+                "company_en": "Avientek, LIU#6, Office - A4, A5 & A6, Dubai Silicon Oasis, Dubai – UAE",
+                "company_ar": "تسجيل الدخول للشريك",
+                "country": "United Arab Emirates",
+                "tender_ref": "GEMS Education"
+            },
+            "issued_by": "dhanzal",
+            "issued_at": "2026-06-12 08:38:11",
+            "voided": false
+        }
+    ]
+}

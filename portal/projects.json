@@ -1,0 +1,944 @@
+[
+    {
+        "id": "proj_2026_301",
+        "quoteNum": "INTL-2026-301",
+        "date": "2026-01-15",
+        "status": "Active",
+        "clientName": "Saudi Aramco",
+        "country": "Saudi Arabia",
+        "equipment": "Mechatronics Training Systems",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_302",
+        "quoteNum": "INTL-2026-302",
+        "date": "2026-01-22",
+        "status": "Active",
+        "clientName": "KACST",
+        "country": "Saudi Arabia",
+        "equipment": "Electronics & Instrumentation Lab",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_303",
+        "quoteNum": "INTL-2026-303",
+        "date": "2026-02-03",
+        "status": "Active",
+        "clientName": "ALFA ENGINEERING CO.",
+        "country": "Egypt",
+        "equipment": "Fluid Power Training Systems",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [],
+        "updated": "2026-04-01 09:54:18"
+    },
+    {
+        "id": "proj_2026_304",
+        "quoteNum": "INTL-2026-304",
+        "date": "2026-02-10",
+        "status": "Pending",
+        "clientName": "King Abdulaziz University",
+        "country": "Saudi Arabia",
+        "equipment": "PLC & Industrial Automation",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_305",
+        "quoteNum": "INTL-2026-305",
+        "date": "2026-02-18",
+        "status": "Active",
+        "clientName": "Jubail Industrial College",
+        "country": "Saudi Arabia",
+        "equipment": "Welding Technology Lab",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_306",
+        "quoteNum": "INTL-2026-306",
+        "date": "2026-02-25",
+        "status": "Active",
+        "clientName": "UAE Ministry of Education",
+        "country": "UAE",
+        "equipment": "STEM Education Equipment Package",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_307",
+        "quoteNum": "INTL-2026-307",
+        "date": "2026-03-04",
+        "status": "Active",
+        "clientName": "Qatar University",
+        "country": "Qatar",
+        "equipment": "Robotics & Automation Lab",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_308",
+        "quoteNum": "INTL-2026-308",
+        "date": "2026-03-10",
+        "status": "Won",
+        "clientName": "College of Engineering Al-Kharj",
+        "country": "Saudi Arabia",
+        "equipment": "Tender 26\/1 \u2014 Mechatronics Engineering Labs (36 Bundles)",
+        "notes": "Saudi Arabia Tender No. 26\/1",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_309",
+        "quoteNum": "INTL-2026-309",
+        "date": "2026-03-15",
+        "status": "Active",
+        "clientName": "BAE Systems",
+        "country": "Saudi Arabia",
+        "equipment": "Technical Training Equipment",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2026_310",
+        "quoteNum": "INTL-2026-310",
+        "date": "2026-03-20",
+        "status": "Active",
+        "clientName": "HMMME",
+        "country": "Saudi Arabia",
+        "equipment": "Industrial Maintenance Training",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_301",
+        "quoteNum": "INTL-2025-301",
+        "date": "2025-01-08",
+        "status": "Won",
+        "clientName": "Saudi Aramco",
+        "country": "Saudi Arabia",
+        "equipment": "Process Control Training Systems",
+        "notes": "",
+        "r1NetCost": "245000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "245000",
+                "price": "376923.08",
+                "notes": "Ex-works USA terms",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_302",
+        "quoteNum": "INTL-2025-302",
+        "date": "2025-01-15",
+        "status": "Won",
+        "clientName": "KACST",
+        "country": "Saudi Arabia",
+        "equipment": "Renewable Energy Lab Systems",
+        "notes": "",
+        "r1NetCost": "180000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "180000",
+                "price": "276923.08",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_303",
+        "quoteNum": "INTL-2025-303",
+        "date": "2025-01-22",
+        "status": "Active",
+        "clientName": "King Fahd University",
+        "country": "Saudi Arabia",
+        "equipment": "Electrical Engineering Lab",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_304",
+        "quoteNum": "INTL-2025-304",
+        "date": "2025-02-05",
+        "status": "Lost",
+        "clientName": "Qatar Petroleum",
+        "country": "Qatar",
+        "equipment": "Instrumentation & Process Control",
+        "notes": "Lost to Festo",
+        "r1NetCost": "320000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "320000",
+                "price": "492307.69",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_305",
+        "quoteNum": "INTL-2025-305",
+        "date": "2025-02-12",
+        "status": "Won",
+        "clientName": "Jubail Industrial College",
+        "country": "Saudi Arabia",
+        "equipment": "CNC Machining Training Systems",
+        "notes": "",
+        "r1NetCost": "156000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.68",
+                "netCost": "156000",
+                "price": "229411.76",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_306",
+        "quoteNum": "INTL-2025-306",
+        "date": "2025-02-20",
+        "status": "Active",
+        "clientName": "Kuwait Oil Company",
+        "country": "Kuwait",
+        "equipment": "Safety Training Systems",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_307",
+        "quoteNum": "INTL-2025-307",
+        "date": "2025-03-03",
+        "status": "Won",
+        "clientName": "Abu Dhabi Polytechnic",
+        "country": "UAE",
+        "equipment": "Mechatronics & Automation Package",
+        "notes": "",
+        "r1NetCost": "290000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "290000",
+                "price": "446153.85",
+                "notes": "Ex-works USA",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_308",
+        "quoteNum": "INTL-2025-308",
+        "date": "2025-03-10",
+        "status": "Pending",
+        "clientName": "Oman LNG",
+        "country": "Oman",
+        "equipment": "Process Plant Operations Trainer",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_309",
+        "quoteNum": "INTL-2025-309",
+        "date": "2025-03-18",
+        "status": "Active",
+        "clientName": "Egyptian Petroleum University",
+        "country": "Egypt",
+        "equipment": "Petroleum Technology Lab",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_310",
+        "quoteNum": "INTL-2025-310",
+        "date": "2025-04-02",
+        "status": "Active",
+        "clientName": "SATTAM University Bid Mechatronics",
+        "country": "Saudi Arabia",
+        "equipment": "Mechatronics Engineering Lab \u2014 Bid Package",
+        "notes": "SATTAM University competitive bid",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_311",
+        "quoteNum": "INTL-2025-311",
+        "date": "2025-04-15",
+        "status": "Won",
+        "clientName": "SATTAM University Complete Package",
+        "country": "Saudi Arabia",
+        "equipment": "Complete STEM Lab Package \u2014 All Disciplines",
+        "notes": "SATTAM University full package award",
+        "r1NetCost": "415000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "415000",
+                "price": "638461.54",
+                "notes": "Ex-works USA terms",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_312",
+        "quoteNum": "INTL-2025-312",
+        "date": "2025-05-06",
+        "status": "Active",
+        "clientName": "University of Bahrain",
+        "country": "Bahrain",
+        "equipment": "Industrial Technology Training Lab",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_313",
+        "quoteNum": "INTL-2025-313",
+        "date": "2025-05-14",
+        "status": "Lost",
+        "clientName": "Libya NOC",
+        "country": "Libya",
+        "equipment": "Process Operations Training Systems",
+        "notes": "Lost \u2014 budget freeze",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_314",
+        "quoteNum": "INTL-2025-314",
+        "date": "2025-06-02",
+        "status": "Won",
+        "clientName": "King Abdulaziz City for Science",
+        "country": "Saudi Arabia",
+        "equipment": "Advanced Robotics Research Lab",
+        "notes": "",
+        "r1NetCost": "520000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "520000",
+                "price": "800000.00",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_315",
+        "quoteNum": "INTL-2025-315",
+        "date": "2025-06-18",
+        "status": "Active",
+        "clientName": "Jordan University of Science",
+        "country": "Jordan",
+        "equipment": "Electrical & Electronics Lab Package",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_316",
+        "quoteNum": "INTL-2025-316",
+        "date": "2025-07-07",
+        "status": "Pending",
+        "clientName": "Morocco OCP Group",
+        "country": "Morocco",
+        "equipment": "Mining & Industrial Training Systems",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_317",
+        "quoteNum": "INTL-2025-317",
+        "date": "2025-07-22",
+        "status": "Won",
+        "clientName": "Yanbu Industrial College",
+        "country": "Saudi Arabia",
+        "equipment": "Fluid Power & Pneumatics Lab",
+        "notes": "",
+        "r1NetCost": "195000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.68",
+                "netCost": "195000",
+                "price": "286764.71",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_318",
+        "quoteNum": "INTL-2025-318",
+        "date": "2025-08-05",
+        "status": "Active",
+        "clientName": "Saudi Electricity Company",
+        "country": "Saudi Arabia",
+        "equipment": "Electrical Maintenance Training",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2025_319",
+        "quoteNum": "INTL-2025-319",
+        "date": "2025-09-10",
+        "status": "Won",
+        "clientName": "Emirates College of Technology",
+        "country": "UAE",
+        "equipment": "Automation & Controls Lab",
+        "notes": "",
+        "r1NetCost": "175000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "175000",
+                "price": "269230.77",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2025_320",
+        "quoteNum": "INTL-2025-320",
+        "date": "2025-10-01",
+        "status": "Active",
+        "clientName": "Bahrain Polytechnic",
+        "country": "Bahrain",
+        "equipment": "HVAC & Refrigeration Training Systems",
+        "notes": "Date noted as 5\/21\/2026 in source \u2014 recorded as 2025",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2024_301",
+        "quoteNum": "INTL-2024-301",
+        "date": "2024-01-10",
+        "status": "Won",
+        "clientName": "Saudi Aramco",
+        "country": "Saudi Arabia",
+        "equipment": "Turbomachinery Training Systems",
+        "notes": "",
+        "r1NetCost": "380000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "380000",
+                "price": "584615.38",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_302",
+        "quoteNum": "INTL-2024-302",
+        "date": "2024-01-25",
+        "status": "Won",
+        "clientName": "SABIC",
+        "country": "Saudi Arabia",
+        "equipment": "Process Technology Training Lab",
+        "notes": "",
+        "r1NetCost": "290000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "290000",
+                "price": "446153.85",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_303",
+        "quoteNum": "INTL-2024-303",
+        "date": "2024-02-08",
+        "status": "Lost",
+        "clientName": "Kuwait University",
+        "country": "Kuwait",
+        "equipment": "Engineering Labs Package",
+        "notes": "Lost to Lucas-Nuelle",
+        "r1NetCost": "215000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2024_304",
+        "quoteNum": "INTL-2024-304",
+        "date": "2024-02-20",
+        "status": "Won",
+        "clientName": "King Saud University",
+        "country": "Saudi Arabia",
+        "equipment": "Mechatronics & PLC Training Systems",
+        "notes": "",
+        "r1NetCost": "340000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "340000",
+                "price": "523076.92",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_305",
+        "quoteNum": "INTL-2024-305",
+        "date": "2024-03-05",
+        "status": "Won",
+        "clientName": "Technical & Vocational Training Corp",
+        "country": "Saudi Arabia",
+        "equipment": "Industrial Skills Training Systems \u2014 Phase 1",
+        "notes": "TVTC multi-phase project",
+        "r1NetCost": "650000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "650000",
+                "price": "1000000.00",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_306",
+        "quoteNum": "INTL-2024-306",
+        "date": "2024-03-18",
+        "status": "Active",
+        "clientName": "Oman Technical & Industrial College",
+        "country": "Oman",
+        "equipment": "Electrical Technology Lab",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2024_307",
+        "quoteNum": "INTL-2024-307",
+        "date": "2024-04-02",
+        "status": "Won",
+        "clientName": "University of Qatar",
+        "country": "Qatar",
+        "equipment": "Chemical Engineering Lab Systems",
+        "notes": "",
+        "r1NetCost": "225000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.68",
+                "netCost": "225000",
+                "price": "330882.35",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_308",
+        "quoteNum": "INTL-2024-308",
+        "date": "2024-04-15",
+        "status": "Lost",
+        "clientName": "Algeria Sonatrach",
+        "country": "Algeria",
+        "equipment": "Process Simulation Training",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2024_309",
+        "quoteNum": "INTL-2024-309",
+        "date": "2024-05-07",
+        "status": "Won",
+        "clientName": "Dhahran Techno Valley",
+        "country": "Saudi Arabia",
+        "equipment": "Advanced Manufacturing Training Center",
+        "notes": "",
+        "r1NetCost": "480000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "480000",
+                "price": "738461.54",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_310",
+        "quoteNum": "INTL-2024-310",
+        "date": "2024-05-22",
+        "status": "Won",
+        "clientName": "KACST",
+        "country": "Saudi Arabia",
+        "equipment": "Nanotechnology Research Equipment",
+        "notes": "",
+        "r1NetCost": "160000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "160000",
+                "price": "246153.85",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_311",
+        "quoteNum": "INTL-2024-311",
+        "date": "2024-06-10",
+        "status": "Active",
+        "clientName": "Lebanese American University",
+        "country": "Lebanon",
+        "equipment": "Engineering Technology Lab Package",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2024_312",
+        "quoteNum": "INTL-2024-312",
+        "date": "2024-07-03",
+        "status": "Won",
+        "clientName": "Jubail Industrial College",
+        "country": "Saudi Arabia",
+        "equipment": "Industrial Safety & Fire Training Systems",
+        "notes": "",
+        "r1NetCost": "195000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.68",
+                "netCost": "195000",
+                "price": "286764.71",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_313",
+        "quoteNum": "INTL-2024-313",
+        "date": "2024-07-18",
+        "status": "Pending",
+        "clientName": "National Oil Company Libya",
+        "country": "Libya",
+        "equipment": "Petroleum Operations Trainer",
+        "notes": "On hold \u2014 political situation",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2024_314",
+        "quoteNum": "INTL-2024-314",
+        "date": "2024-08-06",
+        "status": "Won",
+        "clientName": "Saudi Electricity Company",
+        "country": "Saudi Arabia",
+        "equipment": "Substation Operations Training",
+        "notes": "",
+        "r1NetCost": "275000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "275000",
+                "price": "423076.92",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2024_315",
+        "quoteNum": "INTL-2024-315",
+        "date": "2024-09-12",
+        "status": "Won",
+        "clientName": "Abu Dhabi National Energy Company",
+        "country": "UAE",
+        "equipment": "Power Generation Training Systems",
+        "notes": "",
+        "r1NetCost": "310000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": [
+            {
+                "rNum": 2,
+                "divisor": "0.65",
+                "netCost": "310000",
+                "price": "476923.08",
+                "notes": "",
+                "file": null
+            }
+        ]
+    },
+    {
+        "id": "proj_2019_001",
+        "quoteNum": "INTL-2019-001",
+        "date": "2019-01-14",
+        "status": "Won",
+        "clientName": "Saudi Aramco",
+        "country": "Saudi Arabia",
+        "equipment": "Process Operations Training Systems",
+        "notes": "2019 \u2014 Value recorded as R1 reference",
+        "r1NetCost": "420000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_002",
+        "quoteNum": "INTL-2019-002",
+        "date": "2019-02-05",
+        "status": "Won",
+        "clientName": "SABIC",
+        "country": "Saudi Arabia",
+        "equipment": "Chemical Process Training Lab",
+        "notes": "",
+        "r1NetCost": "285000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_003",
+        "quoteNum": "INTL-2019-003",
+        "date": "2019-02-20",
+        "status": "Won",
+        "clientName": "King Saud University",
+        "country": "Saudi Arabia",
+        "equipment": "Engineering Technology Package",
+        "notes": "",
+        "r1NetCost": "195000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_004",
+        "quoteNum": "INTL-2019-004",
+        "date": "2019-03-10",
+        "status": "Won",
+        "clientName": "Technical & Vocational Training Corp",
+        "country": "Saudi Arabia",
+        "equipment": "TVTC National Rollout \u2014 Phase 1",
+        "notes": "Multi-site deployment",
+        "r1NetCost": "890000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_005",
+        "quoteNum": "INTL-2019-005",
+        "date": "2019-04-02",
+        "status": "Won",
+        "clientName": "Jubail Industrial College",
+        "country": "Saudi Arabia",
+        "equipment": "Industrial Automation Lab",
+        "notes": "",
+        "r1NetCost": "230000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_006",
+        "quoteNum": "INTL-2019-006",
+        "date": "2019-05-15",
+        "status": "Won",
+        "clientName": "University of Qatar",
+        "country": "Qatar",
+        "equipment": "Electrical Engineering Lab Systems",
+        "notes": "",
+        "r1NetCost": "175000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_007",
+        "quoteNum": "INTL-2019-007",
+        "date": "2019-06-08",
+        "status": "Active",
+        "clientName": "Kuwait Oil Company",
+        "country": "Kuwait",
+        "equipment": "Upstream Operations Trainer",
+        "notes": "",
+        "r1NetCost": "",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_008",
+        "quoteNum": "INTL-2019-008",
+        "date": "2019-07-22",
+        "status": "Won",
+        "clientName": "Abu Dhabi Polytechnic",
+        "country": "UAE",
+        "equipment": "Mechanical Technology Lab",
+        "notes": "",
+        "r1NetCost": "260000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_009",
+        "quoteNum": "INTL-2019-009",
+        "date": "2019-09-10",
+        "status": "Won",
+        "clientName": "Yanbu Industrial College",
+        "country": "Saudi Arabia",
+        "equipment": "Process Technology Training Systems",
+        "notes": "",
+        "r1NetCost": "310000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    },
+    {
+        "id": "proj_2019_010",
+        "quoteNum": "INTL-2019-010",
+        "date": "2019-10-30",
+        "status": "Won",
+        "clientName": "KACST",
+        "country": "Saudi Arabia",
+        "equipment": "Research Lab Equipment Package",
+        "notes": "",
+        "r1NetCost": "145000",
+        "currency": "USD",
+        "r1File": null,
+        "revisions": []
+    }
+]

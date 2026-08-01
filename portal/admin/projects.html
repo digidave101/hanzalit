@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Tracker — TI Kitmeer Admin</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e8e0d0;min-height:100vh}
+/* ── TOP BAR ── */
+.topbar{background:#1a1400;border-bottom:1px solid #3a2a0a;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar .logo{font-size:15px;font-weight:700;color:#dc8c1e}
+.topbar a{color:#a07030;font-size:12px;text-decoration:none;border:1px solid #3a2a0a;padding:5px 12px;border-radius:5px}
+.topbar a:hover{border-color:#dc8c1e;color:#dc8c1e}
+.topbar .spacer{flex:1}
+/* ── YEAR TABS ── */
+.yearnav{background:#111;border-bottom:1px solid #2a2000;padding:10px 20px;display:flex;gap:8px;flex-wrap:wrap}
+.yearbtn{background:#1e1600;border:1px solid #3a2a0a;color:#a07030;padding:6px 18px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600}
+.yearbtn.active{background:#dc8c1e;border-color:#dc8c1e;color:#000}
+.yearbtn:hover:not(.active){border-color:#dc8c1e;color:#dc8c1e}
+/* ── TOOLBAR ── */
+.toolbar{padding:14px 20px;display:flex;gap:10px;align-items:center;background:#0d0d0d;border-bottom:1px solid #1e1e1e;flex-wrap:wrap}
+.toolbar input{background:#1a1a1a;border:1px solid #333;color:#e8e0d0;padding:7px 12px;border-radius:5px;font-size:13px;width:240px}
+.toolbar select{background:#1a1a1a;border:1px solid #333;color:#e8e0d0;padding:7px 10px;border-radius:5px;font-size:13px}
+.btn{padding:7px 16px;border-radius:5px;border:none;cursor:pointer;font-size:13px;font-weight:600}
+.btn-gold{background:#dc8c1e;color:#000}.btn-gold:hover{background:#f0a030}
+.btn-gray{background:#2a2a2a;color:#ccc;border:1px solid #444}.btn-gray:hover{background:#333}
+.btn-sm{padding:5px 11px;font-size:12px}
+.count{color:#666;font-size:12px;margin-left:auto}
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;padding:0 20px 20px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1a1400;color:#dc8c1e;padding:9px 12px;text-align:left;border-bottom:2px solid #3a2a0a;white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid #1e1e1e;vertical-align:middle}
+tr:hover td{background:#111}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700}
+.badge-active{background:#1a3a1a;color:#5cb85c}
+.badge-won{background:#1a2a3a;color:#5b9bd5}
+.badge-lost{background:#3a1a1a;color:#c0392b}
+.badge-pending{background:#3a2a0a;color:#dc8c1e}
+.badge-hold{background:#2a2a2a;color:#aaa}
+.link-btn{background:none;border:none;color:#dc8c1e;cursor:pointer;font-size:13px;text-align:left;padding:0;text-decoration:underline}
+/* ── SLIDE PANEL ── */
+#panelBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;overflow-y:auto}
+#panelBg.open{display:flex;justify-content:flex-end}
+#panel{background:#141414;width:600px;max-width:100%;min-height:100vh;display:flex;flex-direction:column;border-left:2px solid #3a2a0a}
+.panel-head{background:#1a1400;padding:18px 20px;border-bottom:1px solid #3a2a0a}
+.panel-head h2{font-size:16px;color:#dc8c1e}
+.panel-head p{font-size:12px;color:#888;margin-top:3px}
+#panelBody{flex:1;padding:20px;overflow-y:auto}
+#panelFoot{padding:14px 20px;border-top:1px solid #222;display:flex;gap:10px;justify-content:flex-end;background:#0f0f0f}
+/* ── VIEW SECTIONS ── */
+.vsec{margin-bottom:18px}
+.vsec h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#dc8c1e;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #2a2000}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vfield label{font-size:11px;color:#777;margin-bottom:2px;display:block}
+.vfield p{font-size:13px;color:#e8e0d0}
+.vfull{grid-column:1/-1}
+/* revision rows */
+.rev-row{background:#181818;border:1px solid #2a2a2a;border-radius:6px;padding:12px 14px;margin-bottom:8px}
+.rev-row .rhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rev-row .rnum{font-weight:700;font-size:13px;color:#dc8c1e}
+.rev-row .rprice{font-size:14px;font-weight:700;color:#5cb85c}
+.rev-row .rdetail{font-size:12px;color:#888}
+.file-link{display:inline-block;color:#5b9bd5;font-size:12px;text-decoration:none;margin-top:6px}
+.file-link:hover{color:#80bdff}
+/* ── FORM STYLES ── */
+.fsec{margin-bottom:18px}
+.fsec h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#dc8c1e;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #2a2000}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ffull{grid-column:1/-1}
+.ffield label{font-size:12px;color:#999;margin-bottom:4px;display:block}
+.ffield input,.ffield select,.ffield textarea{width:100%;background:#1e1e1e;border:1px solid #333;color:#e8e0d0;padding:8px 10px;border-radius:5px;font-size:13px}
+.ffield textarea{resize:vertical;min-height:60px}
+.rev-form-row{display:grid;grid-template-columns:60px 110px 110px auto 1fr;gap:8px;align-items:center;margin-bottom:6px;font-size:12px}
+.rev-form-row label{color:#888;font-size:11px}
+.rev-form-row input{background:#1e1e1e;border:1px solid #333;color:#e8e0d0;padding:6px 8px;border-radius:4px;font-size:12px;width:100%}
+.calc-price{color:#5cb85c;font-weight:700;min-width:70px;font-size:13px}
+/* ── UPLOAD ── */
+.upload-area{margin-top:8px}
+.upload-area input[type=file]{display:none}
+.upload-label{display:inline-block;background:#2a1e00;border:1px dashed #5a3a0a;color:#dc8c1e;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px}
+.upload-label:hover{background:#3a2a0a}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:#222;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.grn{border-left:4px solid #5cb85c}
+.toast.red{border-left:4px solid #c0392b}
+/* ── LOGIN ── */
+#loginWrap{display:flex;align-items:center;justify-content:center;min-height:80vh}
+.login-box{background:#1a1400;border:1px solid #3a2a0a;border-radius:10px;padding:36px 32px;width:320px}
+.login-box h2{color:#dc8c1e;margin-bottom:20px;font-size:18px;text-align:center}
+.login-box input{width:100%;background:#0d0d0d;border:1px solid #333;color:#e8e0d0;padding:9px 12px;border-radius:5px;font-size:14px;margin-bottom:12px}
+.login-box button{width:100%;background:#dc8c1e;color:#000;border:none;padding:10px;border-radius:5px;font-weight:700;cursor:pointer;font-size:14px}
+.login-err{color:#c0392b;font-size:12px;text-align:center;margin-top:8px;min-height:18px}
+#mainWrap{display:none}
+.empty{text-align:center;color:#555;padding:40px;font-size:14px}
+</style>
+</head>
+<body>
+<!-- ══ TI-KITMEER: MODULE INSTRUCTIONS TAB (auto-injected) ══ -->
+<style>
+.ti-help-ribbon{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483000;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#0d2137,#1a6fa0);color:#fff !important;font:700 11.5px/1 'Segoe UI',Arial,sans-serif;padding:6px 16px 8px;border-radius:0 0 10px 10px;text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.22);border-top:none;opacity:.93;transition:all .18s ease;white-space:nowrap}
+.ti-help-ribbon:hover{opacity:1;padding-top:9px;padding-bottom:10px;box-shadow:0 5px 16px rgba(0,0,0,.4);color:#fff}
+.ti-help-ribbon .thr-ic{font-size:13px}
+.ti-help-ribbon .thr-gold{color:#e8c040;font-weight:800}
+@media print{.ti-help-ribbon{display:none !important}}
+@media(max-width:560px){.ti-help-ribbon .thr-mod{display:none}}
+</style>
+<a class="ti-help-ribbon" href="/portal/help/projects.html" target="_blank" title="Open the illustrated instructions for this module"><span class="thr-ic">📖</span><span class="thr-gold">Instructions</span><span class="thr-mod">· Project Tracker</span></a>
+<!-- ══ END INSTRUCTIONS TAB ══ -->
+
+
+<!-- LOGIN -->
+<div id="loginWrap">
+  <div class="login-box">
+    <h2>📄 Project Tracker</h2>
+    <p style="text-align:center;color:#888;font-size:12px;margin-bottom:18px">Admin access required.</p>
+    <input type="text" id="lu" placeholder="Username" autocomplete="username">
+    <input type="password" id="lp" placeholder="Password" autocomplete="current-password">
+    <button onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="lerr"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="mainWrap">
+  <div class="topbar">
+    <span class="logo">TI Kitmeer</span>
+    <a href="/portal/admin/index.html">← Admin Dashboard</a>
+    <a href="/portal/admin/clients-db.html">👥 Client DB</a>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- YEAR TABS -->
+  <div class="yearnav" id="yearNav"></div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Search quote, client, equipment…" oninput="applyFilters()">
+    <select id="statusFilter" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option>Active</option><option>Won</option><option>Lost</option>
+      <option>Pending</option><option>On Hold</option>
+    </select>
+    <button class="btn btn-gold" onclick="openAdd()">+ New Quote</button>
+    <button class="btn btn-gray" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-gray" onclick="openOverviewReport()" title="Generate PDF overview of all filtered projects">📊 Overview Report</button>
+    <span class="count" id="countLabel"></span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Quote #</th><th>Date</th><th>Client</th><th>Country</th>
+          <th>Equipment</th><th>Status</th><th>R1 Net</th><th>Latest Price</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg" style="display:none">No quotes found.</div>
+  </div>
+</div>
+
+<!-- SLIDE PANEL -->
+<div id="panelBg" onclick="bgClick(event)">
+  <div id="panel">
+    <div class="panel-head">
+      <h2 id="panelTitle">Quote</h2>
+      <p id="panelSub"></p>
+    </div>
+    <div id="panelBody"></div>
+    <div id="panelFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var ADMINS = {dhanzal:'aA292199', fdegheidy:'Winner#1'};
+var API    = '/portal/admin/projects-api.php';
+var SESSION_KEY = 'ti_admin_session';
+
+var PROJECTS = [];
+var CLIENTS  = [];
+var filtered = [];
+var activeYear = '2026';
+var editId = null;
+var currentUser = null;
+
+// ── AUTO-LOGIN ──────────────────────────────────────────────────────────────
+(function(){
+  try {
+    var s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (s && s.user && ADMINS[s.user] === s.pass) {
+      currentUser = s.user;
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('mainWrap').style.display  = 'block';
+      init();
+    }
+  } catch(e){}
+})();
+
+function doLogin() {
+  var u = document.getElementById('lu').value.trim();
+  var p = document.getElementById('lp').value;
+  if (ADMINS[u] && ADMINS[u] === p) {
+    currentUser = u;
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({user:u, pass:p})); } catch(e){}
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('mainWrap').style.display  = 'block';
+    document.getElementById('lerr').textContent = '';
+    init();
+  } else {
+    document.getElementById('lerr').textContent = 'Invalid credentials.';
+  }
+}
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+function init() {
+  Promise.all([
+    fetch(API + '?action=list_projects').then(function(r){return r.json();}),
+    fetch(API + '?action=list_clients').then(function(r){return r.json();}).catch(function(){return {ok:false, clients:[]};})
+  ]).then(function(res) {
+    PROJECTS = (res[0].ok ? res[0].projects : []) || [];
+    CLIENTS  = (res[1].ok ? res[1].clients  : []) || [];
+    buildYearTabs();
+    applyFilters();
+  }).catch(function(e) {
+    toast('Failed to load data: ' + e.message, 'red');
+  });
+}
+
+// ── YEAR TABS ───────────────────────────────────────────────────────────────
+function buildYearTabs() {
+  var years = ['2026','2025','2024','older','all'];
+  var labels = {all:'All Years', older:'2019 & Earlier'};
+  var nav = document.getElementById('yearNav');
+  nav.innerHTML = '';
+  years.forEach(function(y) {
+    var btn = document.createElement('button');
+    btn.className = 'yearbtn' + (y === activeYear ? ' active' : '');
+    btn.textContent = labels[y] || y;
+    btn.onclick = function() { activeYear = y; buildYearTabs(); applyFilters(); };
+    nav.appendChild(btn);
+  });
+}
+
+// ── FILTERS ─────────────────────────────────────────────────────────────────
+function applyFilters() {
+  var q  = (document.getElementById('searchBox').value || '').toLowerCase();
+  var st = (document.getElementById('statusFilter').value || '').toLowerCase();
+  filtered = PROJECTS.filter(function(p) {
+    var yr = (p.quoteNum || '').match(/\d{4}/);
+    var y  = yr ? parseInt(yr[0]) : 0;
+    if (activeYear === '2026' && y !== 2026) return false;
+    if (activeYear === '2025' && y !== 2025) return false;
+    if (activeYear === '2024' && y !== 2024) return false;
+    if (activeYear === 'older' && y >= 2024)  return false;
+    if (q && !((p.quoteNum||'').toLowerCase().indexOf(q)>=0
+            || (p.clientName||'').toLowerCase().indexOf(q)>=0
+            || (p.equipment||'').toLowerCase().indexOf(q)>=0)) return false;
+    if (st && (p.status||'active').toLowerCase() !== st) return false;
+    return true;
+  });
+  // sort descending by quote number
+  filtered.sort(function(a,b){
+    return (b.quoteNum||'').localeCompare(a.quoteNum||'');
+  });
+  renderTable();
+  document.getElementById('countLabel').textContent = filtered.length + ' quote' + (filtered.length!==1?'s':'');
+}
+
+function renderTable() {
+  var tb = document.getElementById('tBody');
+  tb.innerHTML = '';
+  document.getElementById('emptyMsg').style.display = filtered.length ? 'none' : 'block';
+  filtered.forEach(function(p) {
+    var latestRev = null;
+    if (p.revisions && p.revisions.length) {
+      var sorted = p.revisions.slice().sort(function(a,b){return b.rNum-a.rNum;});
+      for (var i=0; i<sorted.length; i++) {
+        if (sorted[i].price) { latestRev = sorted[i]; break; }
+      }
+    }
+    var tr = document.createElement('tr');
+    tr.innerHTML = ''
+      + '<td><button class="link-btn" onclick="openView(\'' + esc(p.id) + '\')">' + esc(p.quoteNum||'—') + '</button></td>'
+      + '<td>' + esc(p.date||'—') + '</td>'
+      + '<td>' + esc(p.clientName||'—') + '</td>'
+      + '<td>' + esc(p.country||'—') + '</td>'
+      + '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(p.equipment||'') + '">' + esc(p.equipment||'—') + '</td>'
+      + '<td>' + badge(p.status) + '</td>'
+      + '<td>' + (parseFloat(p.r1NetCost||0) > 0 ? '$' + fmtN(p.r1NetCost) : '—') + '</td>'
+      + '<td>' + (latestRev && latestRev.price ? '<span style="color:#5cb85c;font-weight:700">$' + fmtN(latestRev.price) + '</span> <span style="color:#666;font-size:11px">(R' + latestRev.rNum + ')</span>' : '—') + '</td>'
+      + '<td style="white-space:nowrap"><button class="btn btn-gold btn-sm" title="Project Report PDF" onclick="event.stopPropagation();window.open(\'/portal/admin/project-pdf-export.html?id=' + esc(p.id) + '\',\'_blank\')">📊</button></td>';
+    tb.appendChild(tr);
+  });
+}
+
+function badge(st) {
+  st = (st||'active').toLowerCase();
+  var map = {active:'badge-active', won:'badge-won', lost:'badge-lost', pending:'badge-pending', 'on hold':'badge-hold'};
+  return '<span class="badge ' + (map[st]||'badge-active') + '">' + st.charAt(0).toUpperCase()+st.slice(1) + '</span>';
+}
+
+// ── VIEW PANEL ──────────────────────────────────────────────────────────────
+function openView(id) {
+  var p = PROJECTS.find(function(x){return x.id===id;});
+  if (!p) return;
+  editId = null;
+
+  document.getElementById('panelTitle').textContent = p.quoteNum || 'Quote';
+  document.getElementById('panelSub').textContent   = (p.clientName||'') + (p.country ? ' — ' + p.country : '');
+
+  var html = '';
+
+  // Info block
+  html += '<div class="vsec"><h3>Quote Information</h3><div class="vgrid">';
+  html += vf('Quote #', p.quoteNum);
+  html += vf('Date', p.date);
+  html += vf('Status', badge(p.status));
+  html += vf('Currency', p.currency||'USD');
+  html += vf('Client', p.clientName);
+  html += vf('Country', p.country);
+  html += '<div class="vfield vfull"><label>Equipment / Description</label><p>' + esc(p.equipment||'—') + '</p></div>';
+  if (p.notes) html += '<div class="vfield vfull"><label>Notes</label><p>' + esc(p.notes) + '</p></div>';
+  html += '</div></div>';
+
+  // R1
+  html += '<div class="vsec"><h3>R1 — Net Cost to TI</h3>';
+  html += '<div class="rev-row">';
+  html += '<div class="rhead"><span class="rnum">R1 — Baseline</span>';
+  html += '<span class="rprice">' + (parseFloat(p.r1NetCost||0) > 0 ? '$' + fmtN(p.r1NetCost) : 'Not recorded') + '</span></div>';
+  html += fileArea(p.id, 1, p.r1File||null);
+  html += '</div></div>';
+
+  // R2–R6
+  html += '<div class="vsec"><h3>Revisions (R2–R6)</h3>';
+  for (var ri = 2; ri <= 6; ri++) {
+    var r = null;
+    if (p.revisions) {
+      for (var vi=0; vi<p.revisions.length; vi++) {
+        if (p.revisions[vi].rNum === ri) { r = p.revisions[vi]; break; }
+      }
+    }
+    html += '<div class="rev-row">';
+    html += '<div class="rhead">';
+    html += '<span class="rnum">R' + ri + '</span>';
+    if (r && r.price) {
+      html += '<span class="rprice">$' + fmtN(r.price) + '</span>';
+    } else {
+      html += '<span style="color:#555;font-size:12px">No price data</span>';
+    }
+    html += '</div>';
+    if (r) {
+      html += '<div class="rdetail">';
+      if (r.divisor) html += 'Divisor: ' + esc(r.divisor);
+      if (r.netCost) html += ' &nbsp;|&nbsp; Net: $' + fmtN(r.netCost);
+      if (r.notes)   html += '<br>' + esc(r.notes);
+      html += '</div>';
+    }
+    html += fileArea(p.id, ri, (r && r.file ? r.file : null));
+    html += '</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('panelBody').innerHTML = html;
+  document.getElementById('panelFoot').innerHTML =
+    '<button class="btn btn-gray" onclick="closePanel()">Close</button>'
+    + '<button class="btn btn-gold btn-sm" onclick="window.open(\'/portal/admin/project-pdf-export.html?id=' + esc(id) + '\',\'_blank\')">📊 Project Report PDF</button>'
+    + '<button class="btn btn-gray btn-sm" onclick="window.open(\'/portal/admin/quote-export.html?id=' + esc(id) + '\',\'_blank\')">🖨 Quote PDF</button>'
+    + '<button class="btn btn-gray btn-sm" onclick="openEdit(\'' + esc(id) + '\')">✎ Edit</button>'
+    + '<button class="btn btn-sm" style="background:#3a1a1a;color:#c0392b;border:1px solid #5a2a2a" onclick="deleteProject(\'' + esc(id) + '\')">🗑 Delete</button>';
+  document.getElementById('panelBg').classList.add('open');
+}
+
+function vf(label, val) {
+  return '<div class="vfield"><label>' + esc(label) + '</label><p>' + (val||'—') + '</p></div>';
+}
+
+function fileArea(pid, rNum, existingFile) {
+  var html = '<div class="upload-area">';
+  if (existingFile) {
+    var dlUrl = '/portal/admin/projects-api.php?action=download_file&projectId=' + encodeURIComponent(pid) + '&rNum=' + rNum;
+    html += '<a class="file-link" href="' + dlUrl + '" target="_blank">📎 ' + esc(existingFile) + '</a>';
+    html += ' &nbsp;<button class="btn btn-sm" style="background:#2a1a1a;color:#c0392b;border:1px solid #4a2a2a;padding:3px 8px;font-size:11px" onclick="removeFile(\'' + esc(pid) + '\',' + rNum + ')">✕ Remove</button>';
+  } else {
+    var inputId = 'fup_' + pid + '_' + rNum;
+    html += '<label class="upload-label" for="' + inputId + '">📎 Attach R' + rNum + ' file (.xlsx, .pdf, .doc, .ppt, .zip)</label>';
+    html += '<input type="file" id="' + inputId + '" accept=".xlsx,.xls,.pdf,.doc,.docx,.ppt,.pptx,.zip,.png,.jpg" onchange="uploadFile(\'' + esc(pid) + '\',' + rNum + ',this)">';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── FILE UPLOAD / REMOVE ────────────────────────────────────────────────────
+function uploadFile(pid, rNum, input) {
+  if (!input.files.length) return;
+  var fd = new FormData();
+  fd.append('action', 'upload_revision_file');
+  fd.append('projectId', pid);
+  fd.append('rNum', rNum);
+  fd.append('file', input.files[0]);
+  fd.append('user', currentUser);
+  fd.append('pass', ADMINS[currentUser]);
+  toast('Uploading…');
+  fetch(API, {method:'POST', body:fd})
+    .then(function(r){return r.json();})
+    .then(function(r){
+      if (r.ok) {
+        var p = PROJECTS.find(function(x){return x.id===pid;});
+        if (p) {
+          if (rNum === 1) {
+            p.r1File = r.filename;
+          } else {
+            p.revisions = p.revisions || [];
+            var rev = p.revisions.find(function(x){return x.rNum===rNum;});
+            if (!rev) { rev = {rNum:rNum}; p.revisions.push(rev); }
+            rev.file = r.filename;
+          }
+        }
+        toast('File uploaded!', 'grn');
+        openView(pid);
+      } else {
+        toast('Upload failed: ' + (r.error||'unknown'), 'red');
+      }
+    }).catch(function(e){ toast('Error: ' + e.message, 'red'); });
+}
+
+function removeFile(pid, rNum) {
+  if (!confirm('Remove this file?')) return;
+  api('remove_revision_file', {projectId:pid, rNum:rNum}).then(function(r){
+    if (r.ok) {
+      var p = PROJECTS.find(function(x){return x.id===pid;});
+      if (p) {
+        if (rNum===1) { p.r1File=null; }
+        else {
+          var rev = (p.revisions||[]).find(function(x){return x.rNum===rNum;});
+          if (rev) rev.file = null;
+        }
+      }
+      toast('File removed');
+      openView(pid);
+    } else toast('Error: ' + (r.error||'unknown'), 'red');
+  });
+}
+
+// ── ADD / EDIT ──────────────────────────────────────────────────────────────
+function openAdd() {
+  editId = null;
+  var yr = (activeYear==='all'||activeYear==='older') ? new Date().getFullYear() : parseInt(activeYear);
+  var sug = nextQN(yr);
+  document.getElementById('panelTitle').textContent = 'New Quote';
+  document.getElementById('panelSub').textContent   = 'Auto-assigned: ' + sug;
+  document.getElementById('panelBody').innerHTML    = buildForm({quoteNum:sug});
+  document.getElementById('panelFoot').innerHTML    =
+    '<button class="btn btn-gray" onclick="closePanel()">Cancel</button>'
+    + '<button class="btn btn-gold" onclick="submitAdd()">✓ Save Quote</button>';
+  document.getElementById('panelBg').classList.add('open');
+  bindCalc();
+}
+
+function openEdit(id) {
+  var p = PROJECTS.find(function(x){return x.id===id;});
+  if (!p) return;
+  editId = id;
+  document.getElementById('panelTitle').textContent = 'Edit Quote';
+  document.getElementById('panelSub').textContent   = p.quoteNum;
+  document.getElementById('panelBody').innerHTML    = buildForm(p);
+  document.getElementById('panelFoot').innerHTML    =
+    '<button class="btn btn-gray" onclick="closePanel()">Cancel</button>'
+    + '<button class="btn btn-gold" onclick="submitEdit()">✓ Update</button>';
+  document.getElementById('panelBg').classList.add('open');
+  bindCalc();
+}
+
+function buildForm(p) {
+  var revs = p.revisions || [];
+  var countries = ['Saudi Arabia','UAE','Qatar','Kuwait','Bahrain','Oman','Egypt','Jordan','Libya','Morocco','Algeria','Lebanon','Yemen','United States','Other'];
+  var statuses  = ['Active','Won','Lost','Pending','On Hold'];
+
+  // client options
+  var copts = '<option value="">-- Select Client --</option>';
+  var cnames = [];
+  CLIENTS.forEach(function(c){ cnames.push(c.name||''); });
+  // also add unique names from existing projects not in clients
+  PROJECTS.forEach(function(proj){
+    if (proj.clientName && cnames.indexOf(proj.clientName) < 0) cnames.push(proj.clientName);
+  });
+  cnames.sort().forEach(function(n){ copts += '<option value="' + esc(n) + '"' + (p.clientName===n?' selected':'') + '>' + esc(n) + '</option>'; });
+  copts += '<option value="__new__">+ Enter new client name</option>';
+
+  var csel = '<select class="fCS" id="fCS" onchange="csc()">' + copts + '</select>';
+
+  var countryOpts = countries.map(function(c){ return '<option' + (p.country===c?' selected':'') + '>' + c + '</option>'; }).join('');
+  var statusOpts  = statuses.map(function(s){ return '<option value="' + s + '"' + ((p.status||'Active')===s?' selected':'') + '>' + s + '</option>'; }).join('');
+
+  var rrows = '';
+  for (var i=2; i<=6; i++) {
+    var r = revs.find(function(x){return x.rNum===i;}) || {rNum:i,divisor:'',netCost:'',price:'',notes:''};
+    rrows += '<div class="rev-form-row">'
+      + '<span style="color:#dc8c1e;font-weight:700">R' + i + '</span>'
+      + '<div><label>Divisor</label><input id="rd' + i + '" type="number" step="0.01" value="' + esc(r.divisor) + '" oninput="calcRev(' + i + ')"></div>'
+      + '<div><label>Net Cost ($)</label><input id="rn' + i + '" type="number" step="0.01" value="' + esc(r.netCost) + '" oninput="calcRev(' + i + ')"></div>'
+      + '<span class="calc-price" id="rp' + i + '">' + (r.price ? '$'+fmtN(r.price) : '—') + '</span>'
+      + '<div><label>Notes</label><input id="rnt' + i + '" type="text" value="' + esc(r.notes||'') + '"></div>'
+      + '</div>';
+  }
+
+  return '<div class="fsec"><h3>Quote Information</h3><div class="fgrid">'
+    + '<div class="ffield"><label>Quote Number</label><input id="fQN" value="' + esc(p.quoteNum||'') + '" placeholder="INTL-YYYY-NNN"></div>'
+    + '<div class="ffield"><label>Date</label><input id="fDate" type="date" value="' + esc(p.date||'') + '"></div>'
+    + '<div class="ffield"><label>Status</label><select id="fStatus">' + statusOpts + '</select></div>'
+    + '<div class="ffield"><label>Currency</label><select id="fCur"><option value="USD"' + ((p.currency||'USD')==='USD'?' selected':'') + '>USD</option><option value="SAR"' + (p.currency==='SAR'?' selected':'') + '>SAR</option><option value="EUR"' + (p.currency==='EUR'?' selected':'') + '>EUR</option></select></div>'
+    + '<div class="ffield"><label>Client</label>' + csel + '</div>'
+    + '<div class="ffield" id="ncWrap" style="display:none"><label>New Client Name</label><input id="fNC" type="text" placeholder="Enter client name"></div>'
+    + '<div class="ffield"><label>Country</label><select id="fCountry"><option value="">-- Select --</option>' + countryOpts + '</select></div>'
+    + '<div class="ffield ffull"><label>Equipment / Description</label><input id="fEquip" value="' + esc(p.equipment||'') + '" placeholder="Equipment description"></div>'
+    + '<div class="ffield ffull"><label>Notes</label><textarea id="fNotes">' + esc(p.notes||'') + '</textarea></div>'
+    + '</div></div>'
+    + '<div class="fsec"><h3>Pricing</h3><div class="fgrid">'
+    + '<div class="ffield"><label>R1 — Net Cost to TI ($)</label><input id="fR1" type="number" step="0.01" value="' + esc(p.r1NetCost||'') + '" oninput="calcAll()" placeholder="0.00"></div>'
+    + '</div></div>'
+    + '<div class="fsec"><h3>Revisions R2–R6 &nbsp;<small style="color:#666;font-weight:400">(Price = Net ÷ Divisor)</small></h3>'
+    + rrows + '</div>';
+}
+
+function csc() {
+  var v = document.getElementById('fCS') ? document.getElementById('fCS').value : '';
+  document.getElementById('ncWrap').style.display = (v==='__new__') ? 'block' : 'none';
+}
+function bindCalc(){ for(var i=2;i<=6;i++) calcRev(i); }
+function calcRev(i) {
+  var de = document.getElementById('rd'+i);
+  var ne = document.getElementById('rn'+i);
+  var r1e= document.getElementById('fR1');
+  var d  = de  ? parseFloat(de.value)||0  : 0;
+  var n  = ne  ? parseFloat(ne.value)||0  : 0;
+  if (!n && r1e) n = parseFloat(r1e.value)||0;
+  var el = document.getElementById('rp'+i);
+  if (el) el.textContent = (d&&n) ? '$'+fmtN(n/d) : '—';
+}
+function calcAll(){ for(var i=2;i<=6;i++) calcRev(i); }
+
+function collectForm() {
+  var cs = document.getElementById('fCS') ? document.getElementById('fCS').value : '';
+  var cn = cs==='__new__' ? (document.getElementById('fNC') ? document.getElementById('fNC').value.trim()||'Unknown' : 'Unknown') : cs;
+  var revs = [];
+  for (var i=2; i<=6; i++) {
+    var de  = document.getElementById('rd'+i);
+    var ne  = document.getElementById('rn'+i);
+    var nte = document.getElementById('rnt'+i);
+    var r1e = document.getElementById('fR1');
+    var d   = de  ? de.value.trim()  : '';
+    var n   = ne  ? ne.value.trim()  : '';
+    var nt  = nte ? nte.value.trim() : '';
+    if (d||n) {
+      var nd=parseFloat(d)||0, nn=parseFloat(n)||0;
+      if (!nn && r1e) nn=parseFloat(r1e.value)||0;
+      revs.push({rNum:i, divisor:d, netCost:String(nn), price:nd?String(nn/nd):'', notes:nt});
+    }
+  }
+  var qn   = document.getElementById('fQN')     ? document.getElementById('fQN').value.trim()     : '';
+  var date = document.getElementById('fDate')   ? document.getElementById('fDate').value           : '';
+  var st   = document.getElementById('fStatus') ? document.getElementById('fStatus').value         : 'Active';
+  var ctry = document.getElementById('fCountry')? document.getElementById('fCountry').value        : '';
+  var eq   = document.getElementById('fEquip')  ? document.getElementById('fEquip').value.trim()   : '';
+  var nt   = document.getElementById('fNotes')  ? document.getElementById('fNotes').value.trim()   : '';
+  var r1   = document.getElementById('fR1')     ? document.getElementById('fR1').value.trim()      : '';
+  var cur  = document.getElementById('fCur')    ? document.getElementById('fCur').value            : 'USD';
+  return {quoteNum:qn, date:date, status:st, clientName:cn, country:ctry, equipment:eq, notes:nt, r1NetCost:r1, currency:cur, revisions:revs};
+}
+
+function submitAdd() {
+  var data = collectForm();
+  if (!data.quoteNum) { toast('Quote number required','red'); return; }
+  api('add_project', data).then(function(r){
+    if (r.ok) { PROJECTS.push(r.project); closePanel(); applyFilters(); toast('Quote '+r.project.quoteNum+' saved!','grn'); }
+    else toast('Error: '+(r.error||'unknown'),'red');
+  }).catch(function(e){ toast('Error: '+e.message,'red'); });
+}
+
+function submitEdit() {
+  var data = collectForm();
+  data.id = editId;
+  api('update_project', data).then(function(r){
+    if (r.ok) {
+      var idx = PROJECTS.findIndex(function(x){return x.id===editId;});
+      if (idx>=0) PROJECTS[idx]=r.project;
+      openView(editId); applyFilters(); toast('Quote updated!','grn');
+    } else toast('Error: '+(r.error||'unknown'),'red');
+  }).catch(function(e){ toast('Error: '+e.message,'red'); });
+}
+
+function deleteProject(id) {
+  var p = PROJECTS.find(function(x){return x.id===id;});
+  if (!p || !confirm('Delete '+p.quoteNum+'?\nThis cannot be undone.')) return;
+  api('delete_project',{id:id}).then(function(r){
+    if (r.ok) { PROJECTS=PROJECTS.filter(function(x){return x.id!==id;}); closePanel(); applyFilters(); toast('Deleted'); }
+    else toast('Error: '+r.error,'red');
+  });
+}
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+function nextQN(yr) {
+  var used = PROJECTS.map(function(p){ return p.quoteNum||''; });
+  var re = new RegExp('INTL-'+yr+'-(\\d+)');
+  var max = 300;
+  used.forEach(function(q){ var m=q.match(re); if(m&&parseInt(m[1])>max) max=parseInt(m[1]); });
+  return 'INTL-'+yr+'-'+(max+1);
+}
+
+function api(action, data) {
+  var fd = new FormData();
+  fd.append('action', action);
+  fd.append('user', currentUser);
+  fd.append('pass', ADMINS[currentUser]);
+  Object.keys(data).forEach(function(k){
+    fd.append(k, typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
+  });
+  return fetch(API, {method:'POST', body:fd}).then(function(r){return r.json();});
+}
+
+function closePanel() { document.getElementById('panelBg').classList.remove('open'); editId=null; }
+function bgClick(e)   { if (e.target===document.getElementById('panelBg')) closePanel(); }
+
+function openOverviewReport() {
+  if (!filtered.length) { toast('No projects to report on', 'red'); return; }
+  var ids = filtered.map(function(p){ return p.id; }).join(',');
+  var year   = encodeURIComponent(activeYear);
+  var status = encodeURIComponent(document.getElementById('statusFilter').value||'');
+  var search = encodeURIComponent(document.getElementById('searchBox').value||'');
+  window.open('/portal/admin/projects-overview-report.html?ids=' + encodeURIComponent(ids)
+    + '&year=' + year + '&status=' + status + '&search=' + search, '_blank');
+}
+
+function exportCSV() {
+  if (!filtered.length) { toast('No data to export','red'); return; }
+  var rows=[['Quote Number','Date','Client','Country','Equipment','Status','Currency','R1 Net Cost','R2 Divisor','R2 Price','R3 Divisor','R3 Price','R4 Divisor','R4 Price','R5 Divisor','R5 Price','R6 Divisor','R6 Price','Notes']];
+  filtered.forEach(function(p){
+    var row=[p.quoteNum,p.date||'',p.clientName||'',p.country||'',p.equipment||'',p.status||'',p.currency||'USD',p.r1NetCost||''];
+    for(var i=2;i<=6;i++){var r=(p.revisions||[]).find(function(x){return x.rNum===i;});row.push(r?r.divisor:'');row.push(r?r.price:'');}
+    row.push(p.notes||'');
+    rows.push(row);
+  });
+  var csv=rows.map(function(r){return r.map(function(v){return'"'+String(v||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='TI-quotes-'+activeYear+'-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('Exported!','grn');
+}
+
+function fmtN(n) {
+  var v=parseFloat(n)||0;
+  return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function toast(msg, type) {
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+(type||'')+' show';
+  setTimeout(function(){t.className='toast';},2800);
+}
+</script>
+</body>
+</html>

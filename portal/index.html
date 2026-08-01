@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TI-Kitmeer | Secure Document Portal</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root {
+  --blue-dark:  #0d2137;
+  --blue-mid:   #1a6fa0;
+  --blue-bright:#1a9ad4;
+  --teal:       #0db8a8;
+  --teal-light: #2dd4a0;
+  --bg:         #eef4f9;
+  --white:      #ffffff;
+  --text:       #0d2137;
+  --subtext:    #4a6a82;
+  --border:     #c8dde8;
+  --shadow:     0 2px 12px rgba(13,33,55,.10);
+  --shadow-h:   0 6px 24px rgba(13,33,55,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.header{
+  background:var(--blue-dark);
+  padding:0 36px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:68px;
+  border-bottom:3px solid var(--teal);
+  position:sticky;top:0;z-index:100;
+}
+.logos{display:flex;align-items:center;gap:22px;}
+.logo-div{width:1px;height:44px;background:rgba(255,255,255,.15);}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.hdr-tag{
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--teal-light);font-weight:700;
+  background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);
+  padding:4px 10px;border-radius:4px;
+}
+.hdr-admin-link{
+  font-size:11px;color:#a8c8d8;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.07);
+  padding:6px 12px;border-radius:5px;
+  text-decoration:none;font-weight:600;
+  transition:all .15s;
+}
+.hdr-admin-link:hover{background:rgba(255,255,255,.14);color:#fff;}
+
+/* ── LOGIN SCREEN ────────────────────────────── */
+#loginScreen{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:40px 20px;
+  background:linear-gradient(135deg,#eef4f9 0%,#dcedf7 100%);
+}
+.login-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  width:100%;max-width:460px;
+}
+
+/* ── LOGIN BOX ────────────────────────────────── */
+.login-box{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:40px 44px;
+  width:100%;
+  box-shadow:var(--shadow-h);
+}
+.login-logo{
+  display:flex;justify-content:center;margin-bottom:28px;
+  gap:16px;align-items:center;
+}
+.login-logo .div{width:1px;height:40px;background:var(--border);}
+.login-box h2{
+  font-size:20px;font-weight:700;color:var(--blue-dark);
+  margin-bottom:4px;text-align:center;
+}
+.login-box .sub{
+  font-size:12px;color:var(--subtext);margin-bottom:28px;text-align:center;
+  line-height:1.6;
+}
+.lbl{
+  display:block;font-size:10px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--subtext);margin-bottom:6px;
+}
+.linput{
+  width:100%;background:#f4f8fc;border:1.5px solid var(--border);
+  border-radius:8px;padding:11px 13px;font-size:13px;
+  color:var(--text);outline:none;font-family:inherit;margin-bottom:14px;
+  transition:border-color .15s;letter-spacing:.05em;
+}
+.linput:focus{border-color:var(--blue-bright);background:var(--white);}
+.lbtn{
+  width:100%;
+  background:linear-gradient(135deg,var(--blue-mid),var(--teal));
+  border:none;border-radius:8px;padding:13px;
+  color:#fff;font-size:14px;font-weight:700;cursor:pointer;
+  font-family:inherit;letter-spacing:.04em;
+  transition:opacity .15s;
+}
+.lbtn:hover{opacity:.88;}
+.lerr{
+  font-size:12px;color:#d04040;margin-top:10px;display:none;text-align:center;
+  background:#fff0f0;border:1px solid #f0c0c0;border-radius:6px;padding:8px;
+}
+.contact-hint{
+  font-size:12px;color:var(--subtext);margin-top:16px;text-align:center;
+}
+.contact-hint a{color:var(--blue-bright);text-decoration:none;}
+.contact-hint a:hover{text-decoration:underline;}
+
+/* ── FEATURE CARDS ────────────────────────────── */
+.feature-cards{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:14px;margin-top:28px;width:100%;
+}
+.fcard{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:12px;padding:20px 16px;
+  text-align:center;
+  box-shadow:var(--shadow);
+}
+.fcard .ico{
+  font-size:22px;margin-bottom:10px;
+  display:block;
+}
+.fcard h3{
+  font-size:12px;font-weight:700;color:var(--text);
+  margin-bottom:5px;
+}
+.fcard p{
+  font-size:11px;color:var(--subtext);line-height:1.55;
+}
+
+/* ── PORTAL SCREEN ───────────────────────────── */
+#portalScreen{
+  display:none;
+  flex:1;flex-direction:column;
+}
+.welcome-bar{
+  background:linear-gradient(135deg,var(--blue-dark) 0%,#163a5a 100%);
+  padding:28px 40px 24px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.welcome-bar h1{
+  font-size:22px;font-weight:800;color:#fff;
+  margin-bottom:4px;letter-spacing:-.02em;
+}
+.welcome-bar p{font-size:13px;color:#7aaac8;}
+
+/* ── FOOTER ─────────────────────────────────── */
+.footer{
+  background:var(--blue-dark);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:14px 40px;
+  display:flex;justify-content:space-between;
+  font-size:10px;color:#4a6a82;
+  margin-top:auto;
+}
+.footer a{color:#5a8aaa;text-decoration:none;}
+
+/* ── RESPONSIVE ─────────────────────────────── */
+@media(max-width:640px){
+  .feature-cards{grid-template-columns:1fr;}
+  .header{padding:0 16px;}
+  .login-box{padding:28px 22px;}
+  .footer{flex-direction:column;gap:6px;text-align:center;}
+}
+@media(max-width:480px){
+  .feature-cards{grid-template-columns:1fr 1fr;}
+  .welcome-bar{padding:20px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="logos">
+    <a href="https://www.tieducational.com" target="_blank" rel="noopener">
+      <img src="/TIlogo.png" alt="Technologies International LLC" style="height:52px;width:auto;mix-blend-mode:lighten;">
+    </a>
+    <div class="logo-div"></div>
+    <a href="https://www.kitmeer.com" target="_blank" rel="noopener">
+      <img src="/KitmeerLogo.png" alt="Kitmeer" style="height:38px;width:auto;mix-blend-mode:lighten;">
+    </a>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-tag">Client Portal</div>
+    <a class="hdr-admin-link" href="/portal/admin/" title="Admin access">Admin →</a>
+  </div>
+</div>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="loginScreen">
+  <div class="login-wrap">
+
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="/TIlogo.png" alt="TI" style="height:44px;mix-blend-mode:multiply;">
+        <div class="div"></div>
+        <img src="/KitmeerLogo.png" alt="Kitmeer" style="height:32px;mix-blend-mode:multiply;">
+      </div>
+      <h2>Secure Document Access</h2>
+      <p class="sub">Your TI-Kitmeer representative has provided you with a private access code. Enter it below to access your documents.</p>
+      <label class="lbl">Access Code</label>
+      <input class="linput" id="codeInput" placeholder="e.g. aramco-x7k2" autocomplete="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter')goPortal()"
+        oninput="document.getElementById('lerr').style.display='none'">
+      <button class="lbtn" onclick="goPortal()">Access My Documents &rarr;</button>
+      <div class="lerr" id="lerr">&#9888; Access code not recognized. Please check your code or contact your representative.</div>
+      <div class="contact-hint">No code? <a href="mailto:support@tieducational.com">Contact your representative</a></div>
+    </div>
+
+    <div class="feature-cards">
+      <div class="fcard">
+        <span class="ico">&#128274;</span>
+        <h3>Private Access</h3>
+        <p>Your portal is only visible to those with your unique code.</p>
+      </div>
+      <div class="fcard">
+        <span class="ico">&#11015;&#65039;</span>
+        <h3>Direct Downloads</h3>
+        <p>Files download directly — no third-party services required.</p>
+      </div>
+      <div class="fcard">
+        <span class="ico">&#127760;</span>
+        <h3>MENA Accessible</h3>
+        <p>Fully accessible from Saudi Arabia, UAE, and all MENA regions.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <span>&copy; 2026 Technologies International LLC &amp; Kitmeer &middot; ti-kitmeer.com</span>
+  <span><a href="mailto:support@tieducational.com">Contact Us</a></span>
+</div>
+
+<script>
+var validCodes = null;
+fetch('./clients.json')
+  .then(function(r){ return r.json(); })
+  .then(function(list){
+    validCodes = {};
+    list.forEach(function(c){ validCodes[c.code] = 1; });
+  })
+  .catch(function(){ validCodes = null; });
+
+function goPortal(){
+  var code = document.getElementById('codeInput').value.trim().toLowerCase();
+  if(!code) return;
+  if(validCodes === null || validCodes[code]){
+    window.location.href = '/portal/' + code + '/';
+  } else {
+    document.getElementById('lerr').style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>
