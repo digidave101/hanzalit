@@ -142,10 +142,17 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0;color:var(--
           </div>
           <div class="form-row">
             <div class="form-group"><label>Client / Bill To Name</label><input type="text" id="ph-client-name" readonly style="background:#e8f4f6;"></div>
-            <div class="form-group"><label>Consignee / Bill To Address <span style="color:#888;font-weight:400;">(prints on PL)</span></label><textarea id="ph-bill-to" rows="2" readonly style="background:#e8f4f6;"></textarea></div>
+            <div class="form-group" style="flex:2;">
+              <label>Consignee / Bill To Address <span style="color:#888;font-weight:400;">(prints on this Packing List — editable override)</span></label>
+              <textarea id="ph-bill-to" rows="4" oninput="markUnsaved()" placeholder="Consignee / Bill To address for this packing list"></textarea>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                <button type="button" class="btn" style="background:#e8f4f6;color:#065f6b;border:1px solid #b0d8df;padding:4px 8px;font-size:11px;" onclick="setPlConsigneeFromInvoice('bill')">Use Invoice Bill To</button>
+                <button type="button" class="btn" style="background:#e8f4f6;color:#065f6b;border:1px solid #b0d8df;padding:4px 8px;font-size:11px;" onclick="setPlConsigneeFromInvoice('ship')">Use Invoice Ship To</button>
+              </div>
+            </div>
             <div class="form-group"><label>End User</label><textarea id="ph-end-user" rows="2" readonly style="background:#e8f4f6;"></textarea></div>
           </div>
-          <p style="font-size:11px;color:#666;margin:6px 0 0;">Ship To / delivery address is kept on the invoice only and is intentionally omitted from the Packing List.</p>
+          <p style="font-size:11px;color:#666;margin:6px 0 0;">Edit the Consignee address above if it should differ from the invoice. Changes are saved with this packing list only.</p>
           <div class="form-row">
             <div class="form-group"><label>Incoterms</label><input type="text" id="ph-incoterms" readonly style="background:#e8f4f6;"></div>
             <div class="form-group"><label>Currency</label><input type="text" id="ph-currency" readonly style="background:#e8f4f6;"></div>
@@ -342,14 +349,15 @@ async function openInvoice(id) {
   try {
     const r = await api('get_invoice', {id});
     currentInvData = r.invoice;
-    fillHeader(r.invoice);
 
     // Load existing PL data if any
     const savedPl = r.invoice.pl_data ? (typeof r.invoice.pl_data==='string' ? JSON.parse(r.invoice.pl_data) : r.invoice.pl_data) : null;
+    plData = savedPl || {};
+    fillHeader(r.invoice);
+
     if (savedPl && savedPl.pieces) {
       pieces = savedPl.pieces;
       lineItems = savedPl.lineItems || buildLineItemsFromInvoice(r.invoice);
-      plData = savedPl;
       document.getElementById('pl-number').value = savedPl.pl_number || '';
       document.getElementById('pl-date').value = savedPl.pl_date || new Date().toISOString().split('T')[0];
       document.getElementById('pl-shipment-ref').value = savedPl.shipment_ref || '';
@@ -397,18 +405,34 @@ async function openInvoice(id) {
   }
 }
 
-function fillHeader(inv) {
-  const fmt = (v) => v||'';
+function invoiceBillToBlock(inv) {
   const name = (inv.client_name || '').trim();
   const addr = (inv.client_addr || '').trim();
-  let billTo = '';
-  if (name && addr) billTo = addr.toUpperCase().indexOf(name.toUpperCase()) === 0 ? addr : (name + '\n' + addr);
-  else billTo = name || addr;
+  if (name && addr) {
+    if (addr.toUpperCase().indexOf(name.toUpperCase()) === 0) return addr;
+    return name + '\n' + addr;
+  }
+  return name || addr || '';
+}
+
+function setPlConsigneeFromInvoice(which) {
+  const inv = currentInvData || {};
+  const el = document.getElementById('ph-bill-to');
+  if (!el) return;
+  if (which === 'ship') el.value = (inv.ship_to || '').trim() || invoiceBillToBlock(inv);
+  else el.value = invoiceBillToBlock(inv);
+  markUnsaved();
+}
+
+function fillHeader(inv) {
+  const fmt = (v) => v||'';
   document.getElementById('ph-inv-num').value    = fmt(inv.inv_number);
   document.getElementById('ph-inv-date').value   = inv.inv_date ? inv.inv_date.split('T')[0] : '';
   document.getElementById('ph-po-num').value     = fmt(inv.po_number);
   document.getElementById('ph-client-name').value= fmt(inv.client_name);
-  document.getElementById('ph-bill-to').value    = fmt(billTo);
+  // Prefer saved PL override; otherwise default to invoice Bill To
+  const savedConsignee = (plData && plData.consignee_addr) ? String(plData.consignee_addr).trim() : '';
+  document.getElementById('ph-bill-to').value    = savedConsignee || invoiceBillToBlock(inv);
   document.getElementById('ph-end-user').value   = fmt(inv.end_user);
   document.getElementById('ph-incoterms').value  = fmt(inv.incoterms);
   document.getElementById('ph-currency').value   = fmt(inv.currency);
@@ -809,6 +833,7 @@ async function savePL() {
     goods_desc:   document.getElementById('pl-goods-desc').value,
     ncm:          document.getElementById('pl-ncm').value,
     eccn:         document.getElementById('pl-eccn').value,
+    consignee_addr: document.getElementById('ph-bill-to').value,
     pieces:       pieces,
     lineItems:    lineItems
   };
@@ -824,7 +849,7 @@ async function savePL() {
 // ============================================================
 // PRINT / PDF
 // ============================================================
-function buildPrintHTML() {
+function buildPrintHTML(sigDataUrl) {
   const inv = currentInvData || {};
   const today = new Date(document.getElementById('pl-date').value || new Date()).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const plNum = document.getElementById('pl-number').value || '';
@@ -893,17 +918,8 @@ function buildPrintHTML() {
     </div>
   </td></tr>`;
 
-  // Parties — Consignee / Bill To only (no Ship To / delivery warehouse address)
-  const billName = (inv.client_name || '').trim();
-  const billAddr = (inv.client_addr || '').trim();
-  let billToBlock = '';
-  if (billName && billAddr) {
-    billToBlock = billAddr.toUpperCase().indexOf(billName.toUpperCase()) === 0
-      ? billAddr
-      : (billName + '\n' + billAddr);
-  } else {
-    billToBlock = billName || billAddr || '';
-  }
+  // Parties — Consignee / Bill To from editable PL field (override)
+  const billToBlock = (document.getElementById('ph-bill-to')?.value || '').trim() || invoiceBillToBlock(inv);
   const partiesHtml = `<tr><td colspan="100" style="padding-bottom:14px;">
     <table style="width:100%;border-collapse:collapse;font-size:11px;">
       <tr>
@@ -1050,6 +1066,9 @@ function buildPrintHTML() {
     }
     certBodyHtml = 'We hereby certify that the goods described above were manufactured in ' + originPhrase + ' and that the particulars given are true and correct to the best of our knowledge and belief.';
   }
+  const sigImgTag = sigDataUrl
+    ? `<img src="${sigDataUrl}" alt="Signature" style="height:44px;max-width:170px;display:block;margin:0 0 3px 0">`
+    : '';
   const certHtml = `<tr><td colspan="100">
     <table style="width:100%;border-collapse:collapse;font-size:11px;">
       <tr>
@@ -1062,11 +1081,10 @@ function buildPrintHTML() {
         <td style="vertical-align:top;">
           <div style="border:1px solid #ddd;border-radius:4px;padding:12px;">
             <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:6px;">Authorized Signatory</div>
-            <div style="margin-top:30px;border-top:1px solid #333;padding-top:4px;">
-              <div style="font-weight:700;">David W. Hanzal</div>
-              <div style="color:#666;">President, Technologies International, LLC</div>
-              <div style="color:#666;font-size:10px;margin-top:4px;">Date: ________________________</div>
-            </div>
+            ${sigImgTag}
+            <div style="font-weight:700;border-top:1px solid #333;padding-top:4px;margin-top:4px;">David W. Hanzal</div>
+            <div style="color:#666;">President, Technologies International, LLC</div>
+            <div style="color:#666;font-size:10px;margin-top:4px;">Date: ${today}</div>
           </div>
         </td>
       </tr>
@@ -1098,8 +1116,29 @@ function buildPrintHTML() {
     </table>`;
 }
 
-function openPLWindow(autoPrint) {
-  const html    = buildPrintHTML();
+async function getSignatureB64() {
+  const endpoints = [
+    '/portal/invoices/invoice-api.php',
+    '/portal/invoices/po-api.php',
+  ];
+  for (const url of endpoints) {
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'getSignature', auth_user: AUTH.user, auth_pass: AUTH.pass})
+      });
+      const j = await r.json();
+      if (j.success && j.dataUrl) return j.dataUrl;
+      if (j.success && j.url) return j.url;
+    } catch(e) {}
+  }
+  return 'https://ti-kitmeer.com/portal/admin/secure_assets/signature.png';
+}
+
+async function openPLWindow(autoPrint) {
+  const sig = await getSignatureB64();
+  const html    = buildPrintHTML(sig);
   const plNum   = document.getElementById('pl-number').value || 'PackingList';
   const today   = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   // @page margin CSS — the ONLY reliable page numbering in Chrome
