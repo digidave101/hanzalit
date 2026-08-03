@@ -1,0 +1,4 @@
+portal/**/combine_log.txt
+portal/**/*.bak*
+portal/**/find-password.php
+portal/**/documents_registry.json.lock

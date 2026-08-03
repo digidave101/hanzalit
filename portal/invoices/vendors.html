@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Database | TI Kitmeer</title>
+<style>
+:root {
+  --navy:   #003366;
+  --orange: #E85D04;
+  --teal:   #0d6e8a;
+  --green:  #1a7a4a;
+  --red:    #c0392b;
+  --light:  #f4f7fb;
+  --border: #d0d9e8;
+  --text:   #1a2535;
+  --muted:  #6b7a94;
+  --sidebar:320px;
+  --font:   'Segoe UI', Arial, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--light); color: var(--text); font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* NAV */
+.topnav { background: var(--navy); color:#fff; display:flex; align-items:center; padding:0 18px; height:52px; gap:14px; flex-shrink:0; }
+.topnav a { color:#a8bfd4; text-decoration:none; font-size:12px; }
+.topnav a:hover { color:#fff; }
+.topnav .sep { color:#4a6785; }
+.topnav .title { font-weight:700; font-size:15px; color:#fff; margin-left:auto; }
+.topnav .user-badge { background:var(--orange); color:#fff; border-radius:50px; padding:3px 10px; font-size:11px; font-weight:700; }
+
+/* LOGIN */
+#loginWall { position:fixed; inset:0; background:rgba(0,15,40,.92); display:flex; align-items:center; justify-content:center; z-index:9999; }
+#loginBox { background:#fff; border-radius:12px; padding:38px 40px; width:340px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+#loginBox h2 { color:var(--navy); margin-bottom:6px; }
+#loginBox p  { color:var(--muted); font-size:12px; margin-bottom:22px; }
+#loginBox input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; margin-bottom:10px; font-size:14px; }
+#loginBox button { width:100%; background:var(--navy); color:#fff; border:none; border-radius:6px; padding:11px; font-size:14px; font-weight:700; cursor:pointer; }
+#loginErr { color:var(--red); font-size:12px; margin-top:8px; }
+
+/* LAYOUT */
+.workspace { display:flex; flex:1; overflow:hidden; }
+.sidebar { width:var(--sidebar); background:#fff; border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+.sidebar-head { padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+.sidebar-head h3 { font-size:13px; font-weight:700; color:var(--navy); flex:1; }
+.btn-new { background:var(--orange); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.search-bar { padding:10px 12px; border-bottom:1px solid var(--border); }
+.search-bar input { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; }
+.cat-filter { padding:8px 12px; border-bottom:1px solid var(--border); display:flex; gap:5px; flex-wrap:wrap; }
+.cat-btn { padding:2px 8px; border-radius:50px; border:1px solid var(--border); background:var(--light); font-size:11px; cursor:pointer; color:var(--muted); }
+.cat-btn.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+.vendor-list { flex:1; overflow-y:auto; }
+.vendor-item { padding:11px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
+.vendor-item:hover { background:var(--light); }
+.vendor-item.selected { background:#e8f0fb; border-left:3px solid var(--navy); }
+.vendor-item .vi-name { font-weight:700; font-size:13px; color:var(--navy); display:flex; align-items:center; gap:6px; }
+.vendor-item .vi-cat  { font-size:11px; color:var(--muted); margin:2px 0; }
+.vendor-item .vi-contact { font-size:11px; color:var(--text); }
+.star { color:gold; font-size:12px; }
+
+/* MAIN */
+.main { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+.empty-state { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--muted); gap:12px; }
+.empty-state .icon { font-size:56px; }
+.editor { flex:1; padding:24px; display:flex; flex-direction:column; gap:20px; }
+.editor-header { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.editor-header h2 { font-size:18px; color:var(--navy); flex:1; }
+.action-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.btn { padding:8px 16px; border-radius:6px; border:none; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s; }
+.btn:hover { opacity:.85; }
+.btn-save { background:var(--navy); color:#fff; }
+.btn-del  { background:var(--red);  color:#fff; }
+
+/* CARDS */
+.card { background:#fff; border-radius:10px; border:1px solid var(--border); overflow:hidden; }
+.card-title { background:var(--navy); color:#fff; padding:10px 16px; font-weight:700; font-size:13px; letter-spacing:.5px; }
+.card-body { padding:16px; display:grid; gap:10px; }
+.card-body.cols2 { grid-template-columns:1fr 1fr; }
+.card-body.cols3 { grid-template-columns:1fr 1fr 1fr; }
+.fld { display:flex; flex-direction:column; gap:4px; }
+.fld label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+.fld input, .fld select, .fld textarea { border:1px solid var(--border); border-radius:5px; padding:7px 9px; font-size:13px; font-family:var(--font); color:var(--text); background:#fff; }
+.fld input:focus, .fld select:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 2px rgba(13,110,138,.12); }
+.fld textarea { resize:vertical; min-height:70px; }
+.fld.span2 { grid-column:span 2; }
+.fld.span3 { grid-column:span 3; }
+.fld-row { display:flex; align-items:center; gap:10px; }
+.toggle-lbl { font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; }
+.vendor-code-badge { background:var(--navy); color:#fff; border-radius:6px; padding:4px 14px; font-size:16px; font-weight:800; letter-spacing:2px; display:inline-block; }
+
+/* QUICK STATS */
+.stats-row { display:flex; gap:12px; margin-bottom:4px; }
+.stat-card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px 18px; flex:1; text-align:center; }
+.stat-card .sn { font-size:22px; font-weight:800; color:var(--navy); }
+.stat-card .sl { font-size:11px; color:var(--muted); margin-top:2px; }
+
+#toast { position:fixed; bottom:20px; right:20px; background:#1a2535; color:#fff; padding:10px 18px; border-radius:8px; font-size:13px; opacity:0; transition:opacity .3s; pointer-events:none; z-index:9999; }
+#toast.show { opacity:1; }
+</style>
+</head>
+<body>
+
+<div id="loginWall">
+  <div id="loginBox">
+    <h2>🔒 TI Kitmeer</h2>
+    <p>Vendor Database</p>
+    <input id="lu" type="text"     placeholder="Username">
+    <input id="lp" type="password" placeholder="Password">
+    <button onclick="doLogin()">Sign In</button>
+    <div id="loginErr"></div>
+  </div>
+</div>
+
+<div class="topnav">
+  <a href="/portal/admin/">⬅ Portal</a>
+  <span class="sep">›</span>
+  <a href="/portal/invoices/">Invoices</a>
+  <span class="sep">›</span>
+  <a href="/portal/invoices/purchase-order.html">Purchase Orders</a>
+  <span class="sep">›</span>
+  <span style="color:#fff">Vendor Database</span>
+  <span class="title">TI Kitmeer — Vendor Database</span>
+  <span class="user-badge" id="userBadge">—</span>
+</div>
+
+<div class="workspace">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <h3>Vendors</h3>
+      <button class="btn-new" onclick="newVendor()">+ Add Vendor</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="vendorSearch" placeholder="Search vendors..." oninput="searchVendors()">
+    </div>
+    <div class="cat-filter" id="catFilter">
+      <button class="cat-btn active" onclick="setCategory('',this)">All</button>
+    </div>
+    <div class="vendor-list" id="vendorList"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">🏭</div>
+      <b>No Vendor Selected</b>
+      <span>Click "+ Add Vendor" or select from the list</span>
+      <div class="stats-row" id="globalStats" style="margin-top:12px"></div>
+    </div>
+    <div class="editor" id="editor" style="display:none">
+      <div class="editor-header">
+        <h2 id="editorTitle">New Vendor</h2>
+        <div class="action-btns">
+          <button class="btn btn-save" onclick="saveVendor()">💾 Save Vendor</button>
+          <button class="btn btn-del"  onclick="deleteVendor()">🗑 Delete</button>
+        </div>
+      </div>
+
+      <!-- Identity -->
+      <div class="card">
+        <div class="card-title">🏭 Vendor Identity</div>
+        <div class="card-body cols3">
+          <div class="fld">
+            <label>Vendor Code (auto)</label>
+            <div class="vendor-code-badge" id="vcodeDisplay">—</div>
+            <input type="hidden" id="vVendorCode">
+          </div>
+          <div class="fld span2">
+            <label>Company Name (English)</label>
+            <input type="text" id="vCompanyName" placeholder="e.g. Amatrol Inc." oninput="updateTitle()">
+          </div>
+          <div class="fld span2">
+            <label>Company Name (Arabic / Local)</label>
+            <input type="text" id="vCompanyNameAr" placeholder="اسم الشركة" dir="auto">
+          </div>
+          <div class="fld">
+            <label>Category</label>
+            <input type="text" id="vCategory" list="catList" placeholder="e.g. Training Equipment">
+            <datalist id="catList"></datalist>
+          </div>
+          <div class="fld">
+            <label>Status</label>
+            <select id="vStatus">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="fld" style="justify-content:flex-end">
+            <label>Preferred Vendor</label>
+            <label class="toggle-lbl">
+              <input type="checkbox" id="vPreferred"> ⭐ Mark as Preferred
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="card">
+        <div class="card-title">👤 Primary Contact</div>
+        <div class="card-body cols3">
+          <div class="fld"><label>Contact Name</label><input type="text" id="vContactName" placeholder="Full name"></div>
+          <div class="fld"><label>Title / Role</label><input type="text" id="vContactTitle" placeholder="e.g. Sales Director"></div>
+          <div class="fld"><label>Email</label><input type="email" id="vEmail" placeholder="contact@vendor.com"></div>
+          <div class="fld"><label>Phone</label><input type="tel" id="vPhone" placeholder="+1 (xxx) xxx-xxxx"></div>
+          <div class="fld"><label>Fax</label><input type="tel" id="vFax" placeholder="+1 (xxx) xxx-xxxx"></div>
+          <div class="fld"><label>Website</label><input type="url" id="vWebsite" placeholder="https://www.vendor.com"></div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="card">
+        <div class="card-title">📍 Address</div>
+        <div class="card-body cols3">
+          <div class="fld span3"><label>Address Line 1</label><input type="text" id="vAddr1" placeholder="Street address / PO Box"></div>
+          <div class="fld span3"><label>Address Line 2</label><input type="text" id="vAddr2" placeholder="Suite, Unit, Floor, etc."></div>
+          <div class="fld"><label>City</label><input type="text" id="vCity"></div>
+          <div class="fld"><label>State / Province</label><input type="text" id="vState"></div>
+          <div class="fld"><label>Postal Code</label><input type="text" id="vPostal"></div>
+          <div class="fld span2"><label>Country</label>
+            <select id="vCountry">
+              <option>United States</option>
+              <option>Saudi Arabia</option>
+              <option>United Arab Emirates</option>
+              <option>Qatar</option>
+              <option>Kuwait</option>
+              <option>Bahrain</option>
+              <option>Oman</option>
+              <option>Jordan</option>
+              <option>Egypt</option>
+              <option>Germany</option>
+              <option>United Kingdom</option>
+              <option>France</option>
+              <option>Canada</option>
+              <option>Australia</option>
+              <option>India</option>
+              <option>China</option>
+              <option>Japan</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commercial Terms -->
+      <div class="card">
+        <div class="card-title">💳 Commercial Terms</div>
+        <div class="card-body cols3">
+          <div class="fld">
+            <label>Default Payment Terms</label>
+            <select id="vPayTerms">
+              <option>Net 30</option>
+              <option>Net 60</option>
+              <option>Net 90</option>
+              <option>50% Advance / 50% on Shipment</option>
+              <option>100% Advance</option>
+              <option>Letter of Credit</option>
+              <option>Open Account</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label>Currency</label>
+            <select id="vCurrency">
+              <option value="USD">USD — US Dollar</option>
+              <option value="SAR">SAR — Saudi Riyal</option>
+              <option value="AED">AED — UAE Dirham</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="GBP">GBP — British Pound</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label>Tax ID / VAT Number</label>
+            <input type="text" id="vTaxId" placeholder="e.g. 12-3456789">
+          </div>
+        </div>
+      </div>
+
+      <!-- Banking -->
+      <div class="card">
+        <div class="card-title">🏦 Banking Information</div>
+        <div class="card-body cols3">
+          <div class="fld span2"><label>Bank Name</label><input type="text" id="vBankName" placeholder="e.g. JP Morgan Chase"></div>
+          <div class="fld"><label>Account Number</label><input type="text" id="vBankAcct" placeholder="Account #"></div>
+          <div class="fld"><label>Routing Number (ABA)</label><input type="text" id="vBankRouting" placeholder="9-digit routing"></div>
+          <div class="fld"><label>SWIFT / BIC</label><input type="text" id="vSwift" placeholder="e.g. CHASUS33"></div>
+          <div class="fld"><label>IBAN</label><input type="text" id="vIban" placeholder="e.g. SA03 8000 0000 6080 1016 7519"></div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="card">
+        <div class="card-title">📝 Notes</div>
+        <div class="card-body">
+          <div class="fld"><textarea id="vNotes" rows="4" placeholder="Internal notes — lead times, special ordering instructions, contacts, territory restrictions..."></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const API = '/portal/invoices/po-api.php';
+let AUTH = { user: '', pass: '' };
+let currentVendor = null;
+let allVendors = [];
+let currentCat = '';
+
+function doLogin() {
+  const u = document.getElementById('lu').value.trim();
+  const p = document.getElementById('lp').value.trim();
+  if (!u || !p) return;
+  AUTH = {user: u, pass: p};
+  api('listVendors', {}).then(r => {
+    if (r.success !== false) {
+      sessionStorage.setItem('tikitmeer_auth', JSON.stringify(AUTH));
+      document.getElementById('loginWall').style.display = 'none';
+      document.getElementById('userBadge').textContent = u;
+      renderVendors(r.vendors||[], r.categories||[]);
+      renderGlobalStats(r.vendors||[]);
+    } else {
+      AUTH = {user:'', pass:''};
+      document.getElementById('loginErr').textContent = 'Invalid credentials.';
+    }
+  }).catch(() => { AUTH = {user:'', pass:''}; document.getElementById('loginErr').textContent = 'Connection error.'; });
+}
+document.getElementById('lp').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+
+window.addEventListener('load', () => {
+  try {
+    const a = JSON.parse(sessionStorage.getItem('tikitmeer_auth') || '{}');
+    if (a.user && a.pass) {
+      document.getElementById('lu').value = a.user;
+      document.getElementById('lp').value = a.pass;
+      AUTH = a; doLogin();
+    }
+  } catch(e) {}
+});
+
+function api(action, body={}) {
+  return fetch(API, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action, auth_user:AUTH.user, auth_pass:AUTH.pass, ...body})
+  }).then(r => r.json());
+}
+
+function loadVendors() {
+  api('listVendors', { search: document.getElementById('vendorSearch').value, category: currentCat }).then(r => {
+    if (r.success !== false) {
+      allVendors = r.vendors || [];
+      renderVendors(allVendors, r.categories || []);
+    }
+  });
+}
+
+function renderVendors(vs, cats) {
+  const el = document.getElementById('vendorList');
+  if (!vs.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">No vendors found.</div>'; return; }
+  el.innerHTML = vs.map(v => `
+    <div class="vendor-item${currentVendor && currentVendor.id==v.id?' selected':''}" onclick="loadVendor(${v.id})">
+      <div class="vi-name">${esc(v.company_name)} ${v.is_preferred?'<span class="star">⭐</span>':''}</div>
+      <div class="vi-cat">${esc(v.category||'')} · ${esc(v.city||'')}${v.country?', '+esc(v.country):''}</div>
+      <div class="vi-contact">${esc(v.contact_name||'')}${v.email?' · '+esc(v.email):''}</div>
+    </div>`).join('');
+  // Categories
+  const cf = document.getElementById('catFilter');
+  const existing = new Set([...cf.querySelectorAll('.cat-btn')].map(b => b.dataset.cat));
+  cats.forEach(c => {
+    if (!existing.has(c)) {
+      const b = document.createElement('button');
+      b.className = 'cat-btn';
+      b.dataset.cat = c;
+      b.textContent = c;
+      b.onclick = () => setCategory(c, b);
+      cf.appendChild(b);
+    }
+  });
+}
+
+function renderGlobalStats(vs) {
+  const total = vs.length;
+  const active = vs.filter(v => v.status === 'active').length;
+  const preferred = vs.filter(v => v.is_preferred == 1).length;
+  const countries = new Set(vs.map(v => v.country).filter(Boolean)).size;
+  document.getElementById('globalStats').innerHTML = [
+    {n:total, l:'Total Vendors'},
+    {n:active, l:'Active'},
+    {n:preferred, l:'Preferred'},
+    {n:countries, l:'Countries'},
+  ].map(s => `<div class="stat-card"><div class="sn">${s.n}</div><div class="sl">${s.l}</div></div>`).join('');
+}
+
+function setCategory(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadVendors();
+}
+function searchVendors() { loadVendors(); }
+
+function loadVendor(id) {
+  api('getVendor', {id}).then(r => {
+    if (!r.vendor) { toast('Error loading vendor'); return; }
+    const v = r.vendor;
+    currentVendor = v;
+    document.getElementById('vcodeDisplay').textContent = v.vendor_code || '—';
+    document.getElementById('vVendorCode').value = v.vendor_code || '';
+    document.getElementById('vCompanyName').value = v.company_name || '';
+    document.getElementById('vCompanyNameAr').value = v.company_name_ar || '';
+    document.getElementById('vCategory').value = v.category || '';
+    document.getElementById('vStatus').value = v.status || 'active';
+    document.getElementById('vPreferred').checked = v.is_preferred == 1;
+    document.getElementById('vContactName').value = v.contact_name || '';
+    document.getElementById('vContactTitle').value = v.contact_title || '';
+    document.getElementById('vEmail').value = v.email || '';
+    document.getElementById('vPhone').value = v.phone || '';
+    document.getElementById('vFax').value = v.fax || '';
+    document.getElementById('vWebsite').value = v.website || '';
+    document.getElementById('vAddr1').value = v.address_line1 || '';
+    document.getElementById('vAddr2').value = v.address_line2 || '';
+    document.getElementById('vCity').value = v.city || '';
+    document.getElementById('vState').value = v.state_province || '';
+    document.getElementById('vPostal').value = v.postal_code || '';
+    document.getElementById('vCountry').value = v.country || 'United States';
+    document.getElementById('vPayTerms').value = v.payment_terms || 'Net 30';
+    document.getElementById('vCurrency').value = v.currency || 'USD';
+    document.getElementById('vTaxId').value = v.tax_id || '';
+    document.getElementById('vBankName').value = v.bank_name || '';
+    document.getElementById('vBankAcct').value = v.bank_account || '';
+    document.getElementById('vBankRouting').value = v.bank_routing || '';
+    document.getElementById('vSwift').value = v.bank_swift || '';
+    document.getElementById('vIban').value = v.bank_iban || '';
+    document.getElementById('vNotes').value = v.notes || '';
+    showEditor(v.company_name);
+    loadVendors(); // refresh selection highlight
+  });
+}
+
+function newVendor() {
+  currentVendor = {id: null};
+  const fields = ['vCompanyName','vCompanyNameAr','vCategory','vContactName','vContactTitle',
+    'vEmail','vPhone','vFax','vWebsite','vAddr1','vAddr2','vCity','vState','vPostal','vTaxId',
+    'vBankName','vBankAcct','vBankRouting','vSwift','vIban','vNotes'];
+  fields.forEach(f => document.getElementById(f).value = '');
+  document.getElementById('vcodeDisplay').textContent = '(auto)';
+  document.getElementById('vVendorCode').value = '';
+  document.getElementById('vStatus').value = 'active';
+  document.getElementById('vCurrency').value = 'USD';
+  document.getElementById('vPayTerms').value = 'Net 30';
+  document.getElementById('vCountry').value = 'United States';
+  document.getElementById('vPreferred').checked = false;
+  showEditor('New Vendor');
+}
+
+function showEditor(title) {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('editor').style.display = 'flex';
+  document.getElementById('editorTitle').textContent = title;
+}
+
+function updateTitle() {
+  if (!currentVendor?.id) {
+    const n = document.getElementById('vCompanyName').value;
+    document.getElementById('editorTitle').textContent = n || 'New Vendor';
+  }
+}
+
+function buildPayload() {
+  return {
+    id:              currentVendor?.id || null,
+    vendor_code:     document.getElementById('vVendorCode').value,
+    company_name:    document.getElementById('vCompanyName').value,
+    company_name_ar: document.getElementById('vCompanyNameAr').value,
+    category:        document.getElementById('vCategory').value,
+    contact_name:    document.getElementById('vContactName').value,
+    contact_title:   document.getElementById('vContactTitle').value,
+    email:           document.getElementById('vEmail').value,
+    phone:           document.getElementById('vPhone').value,
+    fax:             document.getElementById('vFax').value,
+    website:         document.getElementById('vWebsite').value,
+    address_line1:   document.getElementById('vAddr1').value,
+    address_line2:   document.getElementById('vAddr2').value,
+    city:            document.getElementById('vCity').value,
+    state_province:  document.getElementById('vState').value,
+    postal_code:     document.getElementById('vPostal').value,
+    country:         document.getElementById('vCountry').value,
+    payment_terms:   document.getElementById('vPayTerms').value,
+    currency:        document.getElementById('vCurrency').value,
+    tax_id:          document.getElementById('vTaxId').value,
+    bank_name:       document.getElementById('vBankName').value,
+    bank_account:    document.getElementById('vBankAcct').value,
+    bank_routing:    document.getElementById('vBankRouting').value,
+    bank_swift:      document.getElementById('vSwift').value,
+    bank_iban:       document.getElementById('vIban').value,
+    notes:           document.getElementById('vNotes').value,
+    is_preferred:    document.getElementById('vPreferred').checked ? 1 : 0,
+    status:          document.getElementById('vStatus').value,
+  };
+}
+
+function saveVendor() {
+  const v = buildPayload();
+  if (!v.company_name.trim()) { toast('Company name is required.'); return; }
+  api('saveVendor', {vendor: v}).then(r => {
+    if (!r.success && r.error) { toast('Error: '+r.error); return; }
+    currentVendor = r.vendor || v;
+    if (currentVendor.id && !v.id) currentVendor.id = r.vendor?.id;
+    if (r.vendor?.vendor_code) {
+      document.getElementById('vcodeDisplay').textContent = r.vendor.vendor_code;
+      document.getElementById('vVendorCode').value = r.vendor.vendor_code;
+    }
+    document.getElementById('editorTitle').textContent = v.company_name;
+    toast('✅ Vendor saved: ' + v.company_name);
+    loadVendors();
+  });
+}
+
+function deleteVendor() {
+  if (!currentVendor?.id) { newVendor(); return; }
+  if (!confirm('Delete "'+currentVendor.company_name+'"? This cannot be undone.')) return;
+  api('deleteVendor', {id: currentVendor.id}).then(r => {
+    if (r.success) {
+      currentVendor = null;
+      document.getElementById('emptyState').style.display = 'flex';
+      document.getElementById('editor').style.display = 'none';
+      toast('Deleted');
+      loadVendors();
+    }
+  });
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, ms=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+</script>
+</body>
+</html>

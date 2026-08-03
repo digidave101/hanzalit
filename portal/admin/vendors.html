@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Vendor Database — TI-Kitmeer Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e8e0d0;min-height:100vh;}
+.header{background:#0d2137;padding:0 20px;height:56px;display:flex;align-items:center;gap:16px;border-bottom:3px solid #0db8a8;position:sticky;top:0;z-index:100;}
+.logo{color:#e8d070;font-weight:800;font-size:16px;text-decoration:none;}
+.nav-link{color:#a8c8d8;font-size:12px;text-decoration:none;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);padding:5px 10px;border-radius:4px;}
+.nav-link:hover{background:rgba(255,255,255,.12);color:#fff;}
+.hdr-tag{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#2dd4a0;font-weight:700;background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);padding:3px 8px;border-radius:4px;}
+#loginWrap{display:flex;align-items:center;justify-content:center;min-height:80vh;}
+.login-box{background:#1a1400;border:1px solid #3a2a0a;border-radius:10px;padding:36px 32px;width:320px;}
+.login-box h2{color:#dc8c1e;margin-bottom:20px;font-size:18px;text-align:center;}
+.login-box input{width:100%;background:#0d0d0d;border:1px solid #333;color:#e8e0d0;padding:9px 12px;border-radius:5px;font-size:14px;margin-bottom:12px;font-family:inherit;}
+.login-box button{width:100%;background:#dc8c1e;color:#000;border:none;padding:10px;border-radius:5px;font-weight:700;cursor:pointer;font-size:14px;}
+.login-err{color:#c0392b;font-size:12px;text-align:center;margin-top:8px;min-height:18px;}
+#mainWrap{display:none;}
+.type-tabs{display:flex;gap:6px;padding:14px 20px 0;background:#111;border-bottom:1px solid #1e1e1e;}
+.ttab{background:none;border:none;color:#666;font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;border-bottom:3px solid transparent;font-family:inherit;}
+.ttab.active{color:#dc8c1e;border-bottom-color:#dc8c1e;}
+.toolbar{padding:12px 20px;display:flex;gap:10px;align-items:center;background:#0d0d0d;border-bottom:1px solid #1e1e1e;flex-wrap:wrap;}
+.toolbar input,.toolbar select{background:#1a1a1a;border:1px solid #333;color:#e8e0d0;padding:7px 12px;border-radius:5px;font-size:13px;font-family:inherit;}
+.toolbar input{width:260px;}
+.btn{padding:7px 16px;border-radius:5px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-gold{background:#dc8c1e;color:#000;}.btn-gold:hover{background:#f0a030;}
+.btn-gray{background:#2a2a2a;color:#ccc;border:1px solid #444;}.btn-gray:hover{background:#333;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-red{background:#3a1a1a;color:#c0392b;border:1px solid #5a2a2a;}.btn-red:hover{background:#4a2222;}
+.count{color:#666;font-size:12px;margin-left:auto;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{background:#1a1a1a;color:#666;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:10px 16px;text-align:left;border-bottom:2px solid #222;}
+td{padding:11px 16px;border-bottom:1px solid #1a1a1a;color:#d0c8b8;font-size:13px;vertical-align:middle;}
+tr:hover td{background:#111;}
+.link-btn{background:none;border:none;color:#dc8c1e;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit;text-align:left;}
+.link-btn:hover{text-decoration:underline;}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:capitalize;}
+.badge-equip{background:rgba(26,154,212,.2);color:#1a9ad4;border:1px solid rgba(26,154,212,.3);}
+.badge-freight{background:rgba(200,162,39,.2);color:#c8a227;border:1px solid rgba(200,162,39,.3);}
+.badge-local{background:rgba(13,184,168,.2);color:#0db8a8;border:1px solid rgba(13,184,168,.3);}
+.badge-other{background:rgba(120,120,120,.2);color:#888;border:1px solid rgba(120,120,120,.3);}
+.badge-active{background:rgba(58,125,68,.2);color:#5cb87c;border:1px solid rgba(58,125,68,.3);}
+.badge-inactive{background:rgba(100,40,40,.2);color:#c07070;border:1px solid rgba(100,40,40,.3);}
+.empty{color:#444;text-align:center;padding:40px;font-size:14px;}
+
+/* ── PANEL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
+.panel{position:fixed;top:0;right:-500px;width:480px;height:100vh;background:#111;border-left:1px solid #222;z-index:201;display:flex;flex-direction:column;transition:right .25s;}
+.panel.open{right:0;}
+.panel-hdr{background:#1a1a1a;padding:16px 20px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;}
+.panel-title{color:#dc8c1e;font-weight:800;font-size:16px;}
+.close-btn{background:none;border:none;color:#666;font-size:20px;cursor:pointer;padding:0 4px;}
+.close-btn:hover{color:#fff;}
+.panel-body{flex:1;overflow-y:auto;padding:20px;}
+.panel-foot{padding:14px 20px;border-top:1px solid #222;display:flex;gap:8px;flex-wrap:wrap;}
+
+/* FORM */
+.frow{margin-bottom:14px;}
+.frow label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;margin-bottom:5px;}
+.finput,.fsel,.ftxt{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;color:#e8e0d0;padding:9px 12px;border-radius:5px;font-size:13px;font-family:inherit;}
+.finput:focus,.fsel:focus,.ftxt:focus{outline:none;border-color:#dc8c1e;}
+.ftxt{resize:vertical;min-height:70px;}
+.frow-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* VIEW */
+.vrow{padding:9px 0;border-bottom:1px solid #1a1a1a;display:flex;gap:12px;}
+.vrow:last-child{border-bottom:none;}
+.vl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#555;width:130px;flex-shrink:0;padding-top:2px;}
+.vv{font-size:13px;color:#d0c8b8;flex:1;line-height:1.5;}
+.vv a{color:#1a9ad4;text-decoration:none;}
+</style>
+</head>
+<body>
+<!-- ══ TI-KITMEER: MODULE INSTRUCTIONS TAB (auto-injected) ══ -->
+<style>
+.ti-help-ribbon{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483000;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#0d2137,#1a6fa0);color:#fff !important;font:700 11.5px/1 'Segoe UI',Arial,sans-serif;padding:6px 16px 8px;border-radius:0 0 10px 10px;text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.22);border-top:none;opacity:.93;transition:all .18s ease;white-space:nowrap}
+.ti-help-ribbon:hover{opacity:1;padding-top:9px;padding-bottom:10px;box-shadow:0 5px 16px rgba(0,0,0,.4);color:#fff}
+.ti-help-ribbon .thr-ic{font-size:13px}
+.ti-help-ribbon .thr-gold{color:#e8c040;font-weight:800}
+@media print{.ti-help-ribbon{display:none !important}}
+@media(max-width:560px){.ti-help-ribbon .thr-mod{display:none}}
+</style>
+<a class="ti-help-ribbon" href="/portal/help/vendors.html" target="_blank" title="Open the illustrated instructions for this module"><span class="thr-ic">📖</span><span class="thr-gold">Instructions</span><span class="thr-mod">· Vendor Database</span></a>
+<!-- ══ END INSTRUCTIONS TAB ══ -->
+
+
+<div class="header">
+  <a href="/portal/admin/" class="logo">TI Kitmeer</a>
+  <a href="/portal/admin/" class="nav-link">← Dashboard</a>
+  <a href="/portal/admin/purchase-orders.html" class="nav-link">📋 Purchase Orders</a>
+  <a href="/portal/admin/clients-db.html" class="nav-link">👥 Clients</a>
+  <div class="hdr-tag">Vendor DB</div>
+</div>
+
+<div id="loginWrap">
+  <div class="login-box">
+    <h2>Admin Login</h2>
+    <input type="text" id="lu" placeholder="Username" autocomplete="username">
+    <input type="password" id="lp" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="lerr"></div>
+  </div>
+</div>
+
+<div id="mainWrap">
+  <div class="type-tabs">
+    <button class="ttab active" data-type="" onclick="setType(this,'')">All Vendors</button>
+    <button class="ttab" data-type="equipment_supplier" onclick="setType(this,'equipment_supplier')">Equipment Suppliers</button>
+    <button class="ttab" data-type="freight" onclick="setType(this,'freight')">Freight & Logistics</button>
+    <button class="ttab" data-type="local_partner" onclick="setType(this,'local_partner')">Local Partners</button>
+    <button class="ttab" data-type="other" onclick="setType(this,'other')">Other</button>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Search name, country, code…" oninput="applyFilters()">
+    <select id="statusFilter" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option>active</option><option>inactive</option>
+    </select>
+    <button class="btn btn-gold" onclick="openAdd()">+ Add Vendor</button>
+    <span class="count" id="countLabel"></span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Code</th><th>Vendor Name</th><th>Type</th><th>Country</th>
+        <th>Contact</th><th>Lead Time</th><th>Currency</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody id="tBody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg" style="display:none">No vendors found. Add your first vendor above.</div>
+  </div>
+</div>
+
+<!-- OVERLAY + PANEL -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-hdr">
+    <span class="panel-title" id="panelTitle">Vendor</span>
+    <button class="close-btn" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+  <div class="panel-foot" id="panelFoot"></div>
+</div>
+
+<script>
+var API      = '/portal/admin/vendors-api.php';
+var ADMINS   = {dhanzal:'aA292199', fdegheidy:'Winner#1'};
+var SESSION  = 'tikm_vnd_sess';
+var currentUser = null, currentPass = null;
+var vendors = [], filtered = [], activeType = '';
+
+function doLogin(){
+  var u=document.getElementById('lu').value.trim();
+  var p=document.getElementById('lp').value;
+  if(ADMINS[u]&&ADMINS[u]===p){
+    currentUser=u; currentPass=p;
+    try{sessionStorage.setItem(SESSION,JSON.stringify({user:u,pass:p}));}catch(e){}
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('mainWrap').style.display='block';
+    loadVendors();
+  } else {
+    document.getElementById('lerr').textContent='Invalid credentials';
+  }
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function api(data){
+  return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({...data,user:currentUser,pass:currentPass})}).then(r=>r.json());
+}
+function toast(msg,col){
+  var t=document.createElement('div');
+  t.style='position:fixed;bottom:20px;right:20px;background:'+(col||'#2a5a2a')+';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;z-index:999;';
+  t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+function typeBadge(t){
+  var m={equipment_supplier:'badge-equip',freight:'badge-freight',local_partner:'badge-local',other:'badge-other'};
+  var l={equipment_supplier:'Equipment Supplier',freight:'Freight / Logistics',local_partner:'Local Partner',other:'Other'};
+  return '<span class="badge '+(m[t]||'badge-other')+'">'+(l[t]||t)+'</span>';
+}
+function statusBadge(s){
+  return '<span class="badge '+(s==='active'?'badge-active':'badge-inactive')+'">'+s+'</span>';
+}
+
+function loadVendors(){
+  api({action:'list_vendors'}).then(res=>{
+    if(res.ok){vendors=res.vendors||[];applyFilters();}
+  });
+}
+
+function setType(el,type){
+  document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active'); activeType=type; applyFilters();
+}
+
+function applyFilters(){
+  var s=document.getElementById('searchBox').value.toLowerCase();
+  var st=document.getElementById('statusFilter').value;
+  filtered=vendors.filter(v=>{
+    if(activeType&&v.type!==activeType) return false;
+    if(st&&v.status!==st) return false;
+    if(s&&!((v.name||'').toLowerCase().includes(s)||(v.country||'').toLowerCase().includes(s)||
+            (v.code||'').toLowerCase().includes(s)||(v.contactName||'').toLowerCase().includes(s))) return false;
+    return true;
+  });
+  renderTable();
+}
+
+function renderTable(){
+  var tb=document.getElementById('tBody');
+  tb.innerHTML='';
+  document.getElementById('emptyMsg').style.display=filtered.length?'none':'block';
+  document.getElementById('countLabel').textContent=filtered.length+' vendor'+(filtered.length!==1?'s':'');
+  filtered.forEach(function(v){
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td><code style="color:#888;font-size:11px;">'+esc(v.code||'—')+'</code></td>'
+      +'<td><button class="link-btn" onclick="openView(\''+esc(v.id)+'\')">'+esc(v.name||'—')+'</button></td>'
+      +'<td>'+typeBadge(v.type||'other')+'</td>'
+      +'<td>'+esc(v.country||'—')+'</td>'
+      +'<td style="font-size:12px;"><div>'+esc(v.contactName||'—')+'</div>'+(v.contactEmail?'<div style="color:#555;font-size:11px;">'+esc(v.contactEmail)+'</div>':'')+'</td>'
+      +'<td style="color:#888;font-size:12px;">'+(v.leadTimeDays?v.leadTimeDays+' days':'—')+'</td>'
+      +'<td style="color:#888;font-size:12px;">'+esc(v.currency||'USD')+'</td>'
+      +'<td>'+statusBadge(v.status||'active')+'</td>'
+      +'<td style="white-space:nowrap;">'
+        +'<button class="btn btn-gray btn-sm" onclick="openEdit(\''+esc(v.id)+'\')">✎ Edit</button>'
+      +'</td>';
+    tb.appendChild(tr);
+  });
+}
+
+function openPanel(title){
+  document.getElementById('panelTitle').textContent=title;
+  document.getElementById('overlay').style.display='block';
+  setTimeout(()=>document.getElementById('panel').classList.add('open'),10);
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').style.display='none';
+}
+
+function openView(id){
+  var v=vendors.find(x=>x.id===id); if(!v) return;
+  var typeLabels={equipment_supplier:'Equipment Supplier',freight:'Freight / Logistics',local_partner:'Local Partner',other:'Other'};
+  document.getElementById('panelBody').innerHTML=
+    vrow('Code',v.code)+vrow('Name',v.name)+vrow('Type',typeLabels[v.type]||v.type)
+    +vrow('Country',v.country)+vrow('City',v.city)+vrow('Address',v.address)
+    +vrow('Contact',v.contactName+(v.contactTitle?' ('+v.contactTitle+')':''))
+    +vrow('Email',v.contactEmail?'<a href="mailto:'+esc(v.contactEmail)+'">'+esc(v.contactEmail)+'</a>':'—')
+    +vrow('Phone',v.contactPhone)
+    +vrow('Website',v.website?'<a href="'+esc(v.website)+'" target="_blank">'+esc(v.website)+'</a>':'—')
+    +vrow('Currency',v.currency)+vrow('Lead Time',(v.leadTimeDays?v.leadTimeDays+' days':'—'))
+    +vrow('Payment Terms',v.paymentTerms)+vrow('Status',v.status)
+    +vrow('Notes',v.notes)+vrow('Updated',v.updatedAt);
+  document.getElementById('panelFoot').innerHTML=
+    '<button class="btn btn-gray" onclick="closePanel()">Close</button>'
+    +'<button class="btn btn-gold btn-sm" onclick="openEdit(\''+esc(id)+'\')">✎ Edit</button>'
+    +'<button class="btn btn-red btn-sm" onclick="deleteVendor(\''+esc(id)+'\')">🗑 Delete</button>';
+  openPanel('Vendor Detail');
+}
+
+function vrow(l,v){
+  return '<div class="vrow"><div class="vl">'+l+'</div><div class="vv">'+(v||'—')+'</div></div>';
+}
+
+function openAdd(){
+  showForm(null);
+}
+function openEdit(id){
+  var v=vendors.find(x=>x.id===id);
+  showForm(v);
+}
+
+function showForm(v){
+  var isNew=!v;
+  document.getElementById('panelBody').innerHTML=
+    '<div class="frow"><label>Vendor Name</label><input class="finput" id="fName" value="'+esc(v?.name||'')+'"></div>'
+    +'<div class="frow"><label>Type</label><select class="fsel" id="fType">'
+      +'<option value="equipment_supplier"'+(v?.type==='equipment_supplier'?' selected':'')+'">Equipment Supplier</option>'
+      +'<option value="freight"'+(v?.type==='freight'?' selected':'')+'">Freight / Logistics</option>'
+      +'<option value="local_partner"'+(v?.type==='local_partner'?' selected':'')+'">Local Partner / Subcontractor</option>'
+      +'<option value="other"'+(v?.type==='other'?' selected':'')+'">Other</option>'
+    +'</select></div>'
+    +'<div class="frow-2">'
+      +'<div class="frow"><label>Country</label><input class="finput" id="fCountry" value="'+esc(v?.country||'')+'"></div>'
+      +'<div class="frow"><label>City</label><input class="finput" id="fCity" value="'+esc(v?.city||'')+'"></div>'
+    +'</div>'
+    +'<div class="frow"><label>Address</label><input class="finput" id="fAddr" value="'+esc(v?.address||'')+'"></div>'
+    +'<div class="frow-2">'
+      +'<div class="frow"><label>Contact Name</label><input class="finput" id="fCname" value="'+esc(v?.contactName||'')+'"></div>'
+      +'<div class="frow"><label>Contact Title</label><input class="finput" id="fCtitle" value="'+esc(v?.contactTitle||'')+'"></div>'
+    +'</div>'
+    +'<div class="frow-2">'
+      +'<div class="frow"><label>Email</label><input class="finput" id="fEmail" value="'+esc(v?.contactEmail||'')+'"></div>'
+      +'<div class="frow"><label>Phone</label><input class="finput" id="fPhone" value="'+esc(v?.contactPhone||'')+'"></div>'
+    +'</div>'
+    +'<div class="frow-2">'
+      +'<div class="frow"><label>Website</label><input class="finput" id="fWeb" value="'+esc(v?.website||'')+'"></div>'
+      +'<div class="frow"><label>Currency</label><select class="fsel" id="fCurr">'
+        +'<option'+(v?.currency==='USD'||!v?.currency?' selected':'')+'">USD</option>'
+        +'<option'+(v?.currency==='EUR'?' selected':'')+'">EUR</option>'
+        +'<option'+(v?.currency==='SAR'?' selected':'')+'">SAR</option>'
+        +'<option'+(v?.currency==='AED'?' selected':'')+'">AED</option>'
+      +'</select></div>'
+    +'</div>'
+    +'<div class="frow-2">'
+      +'<div class="frow"><label>Lead Time (days)</label><input class="finput" id="fLead" type="number" min="1" value="'+(v?.leadTimeDays||'')+'"></div>'
+      +'<div class="frow"><label>Status</label><select class="fsel" id="fStatus">'
+        +'<option value="active"'+(v?.status!=='inactive'?' selected':'')+'">Active</option>'
+        +'<option value="inactive"'+(v?.status==='inactive'?' selected':'')+'">Inactive</option>'
+      +'</select></div>'
+    +'</div>'
+    +'<div class="frow"><label>Default Payment Terms</label><input class="finput" id="fPay" value="'+esc(v?.paymentTerms||'')+'"></div>'
+    +'<div class="frow"><label>Notes</label><textarea class="ftxt" id="fNotes">'+esc(v?.notes||'')+'</textarea></div>';
+
+  document.getElementById('panelFoot').innerHTML=
+    '<button class="btn btn-gray" onclick="closePanel()">Cancel</button>'
+    +'<button class="btn btn-gold" onclick="submitVendor(\''+(v?.id||'')+'\')">'+(isNew?'✓ Add Vendor':'✓ Save Changes')+'</button>';
+  openPanel(isNew?'Add Vendor':'Edit Vendor');
+}
+
+function submitVendor(id){
+  var payload={
+    action:'save_vendor', id:id,
+    name:document.getElementById('fName').value.trim(),
+    type:document.getElementById('fType').value,
+    country:document.getElementById('fCountry').value.trim(),
+    city:document.getElementById('fCity').value.trim(),
+    address:document.getElementById('fAddr').value.trim(),
+    contactName:document.getElementById('fCname').value.trim(),
+    contactTitle:document.getElementById('fCtitle').value.trim(),
+    contactEmail:document.getElementById('fEmail').value.trim(),
+    contactPhone:document.getElementById('fPhone').value.trim(),
+    website:document.getElementById('fWeb').value.trim(),
+    currency:document.getElementById('fCurr').value,
+    leadTimeDays:document.getElementById('fLead').value,
+    status:document.getElementById('fStatus').value,
+    paymentTerms:document.getElementById('fPay').value.trim(),
+    notes:document.getElementById('fNotes').value.trim(),
+  };
+  if(!payload.name){toast('Vendor name is required','#7a1a1a');return;}
+  api(payload).then(res=>{
+    if(res.ok){closePanel();loadVendors();toast(id?'Vendor updated':'Vendor added');}
+    else toast('Error: '+(res.error||'unknown'),'#7a1a1a');
+  });
+}
+
+function deleteVendor(id){
+  if(!confirm('Delete this vendor? This cannot be undone.')) return;
+  api({action:'delete_vendor',id:id}).then(res=>{
+    if(res.ok){closePanel();loadVendors();toast('Vendor deleted','#2a2a2a');}
+    else toast('Error: '+(res.error||'unknown'),'#7a1a1a');
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+(function(){
+  try{
+    var s=JSON.parse(sessionStorage.getItem(SESSION)||'null');
+    if(s&&ADMINS[s.user]===s.pass){
+      currentUser=s.user; currentPass=s.pass;
+      document.getElementById('loginWrap').style.display='none';
+      document.getElementById('mainWrap').style.display='block';
+      loadVendors();
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

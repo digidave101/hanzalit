@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate of U.S.A. Origin — TI</title>
+<style>
+:root { --teal:#0a7b8a; --teal-dark:#065f6b; --gray-800:#333; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0;color:var(--gray-800);}
+#toolbar{background:white;border-bottom:2px solid var(--teal);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+#toolbar h2{flex:1;font-size:16px;color:var(--teal-dark);}
+.btn{padding:7px 14px;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;text-decoration:none;display:inline-block;}
+.btn-print{background:#333;color:white;}
+.btn-back{background:#1a6b5a;color:white;}
+#status{font-size:12px;color:#666;}
+#preview{padding:24px;max-width:900px;margin:0 auto;}
+#doc{background:white;box-shadow:0 2px 12px rgba(0,0,0,0.1);padding:36px 40px;font-size:11px;line-height:1.45;}
+.coo-title{font-size:16px;font-weight:700;text-align:center;letter-spacing:1px;margin-bottom:18px;text-decoration:underline;}
+.coo-row{display:flex;gap:16px;margin-bottom:10px;align-items:flex-start;}
+.coo-label{font-weight:700;min-width:180px;text-transform:uppercase;font-size:10px;}
+.coo-val{flex:1;white-space:pre-wrap;}
+.coo-fixed{color:#333;}
+.coo-mapped{background:#fffde7;border:1px solid #f0e68c;padding:4px 6px;border-radius:2px;}
+.coo-table{width:100%;border-collapse:collapse;margin:14px 0 16px;}
+.coo-table th,.coo-table td{border:1px solid #333;padding:6px 8px;font-size:10px;vertical-align:top;}
+.coo-table th{background:#f5f5f5;font-weight:700;text-transform:uppercase;}
+.coo-cert{margin-top:16px;font-size:10px;line-height:1.6;text-align:justify;}
+.coo-sig{margin-top:24px;text-align:center;}
+.coo-sig img{height:52px;max-width:220px;display:block;margin:0 auto 4px;}
+.coo-sig .name{font-weight:700;font-size:11px;border-top:1px solid #333;display:inline-block;padding-top:4px;min-width:260px;}
+.coo-sig .title{font-size:10px;color:#444;}
+#welcome{padding:60px 20px;text-align:center;color:#888;}
+@media print {
+  body{background:white;}
+  #toolbar,#welcome{display:none !important;}
+  #preview{padding:0;max-width:none;}
+  #doc{box-shadow:none;padding:0;}
+  .coo-mapped{background:transparent !important;border:none !important;padding:0 !important;}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  @page{size:letter;margin:0.55in;}
+}
+</style>
+</head>
+<body>
+<div id="toolbar" class="no-print">
+  <h2>📋 Certificate of U.S.A. Origin</h2>
+  <span id="status">Loading...</span>
+  <button class="btn btn-print" onclick="printCOO()">🖨 Print / Save PDF</button>
+  <a class="btn btn-back" id="back-link" href="/portal/invoices/">← Back to Invoice</a>
+</div>
+
+<div id="welcome">
+  <h3 style="color:var(--teal);margin-bottom:12px;">Certificate of Origin</h3>
+  <p>Open from an invoice using the <strong>Cert. of Origin</strong> button, or add <code>?inv=ID</code> to the URL.</p>
+</div>
+
+<div id="preview" style="display:none;">
+  <div id="doc"></div>
+</div>
+
+<script src="/portal/invoices/doc-date.js"></script>
+<script>
+const AUTH = (() => {
+  try {
+    const s = sessionStorage.getItem('tikitmeer_auth');
+    return s ? JSON.parse(s) : { user: 'dhanzal', pass: 'aA292199', name: 'David Hanzal' };
+  } catch(e) {
+    return { user: 'dhanzal', pass: 'aA292199', name: 'David Hanzal' };
+  }
+})();
+
+const API_BASE = '/portal/invoices/invoice-api.php';
+let currentInv = null;
+let currentPl = null;
+
+async function api(action, data = {}) {
+  const r = await fetch(API_BASE, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({action, auth_user: AUTH.user, auth_pass: AUTH.pass, ...data})
+  });
+  const j = await r.json();
+  if (!j.success) throw new Error(j.error || 'API error');
+  return j;
+}
+
+async function getSignatureB64() {
+  try {
+    const r = await fetch(API_BASE, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'getSignature', auth_user: AUTH.user, auth_pass: AUTH.pass})
+    });
+    const j = await r.json();
+    return (j.success && j.dataUrl) ? j.dataUrl : null;
+  } catch(e) { return null; }
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function parseLineItems(inv) {
+  let raw = inv.line_items;
+  if (!raw) return [];
+  if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e) {} }
+  if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e) {} }
+  return Array.isArray(raw) ? raw : [];
+}
+
+function guessManufacturers(lineItems) {
+  const mfrs = new Set();
+  (lineItems || []).forEach(it => {
+    if (it.manufacturer) {
+      mfrs.add(it.manufacturer);
+      return;
+    }
+    const pn = (it.part_no || it.model_id || '').trim();
+    if (/^41/i.test(pn)) {
+      mfrs.add('Amatrol Inc.\n9701 Industrial Dr\nJeffersonville, IN 47130, USA');
+    }
+  });
+  if (!mfrs.size) mfrs.add('Amatrol Inc.\n9701 Industrial Dr\nJeffersonville, IN 47130, USA');
+  return [...mfrs];
+}
+
+function lastLine(text) {
+  if (!text) return '';
+  const lines = String(text).split('\n').map(l => l.trim()).filter(Boolean);
+  return lines.length ? lines[lines.length - 1] : '';
+}
+
+function ordinalDate(dateStr) {
+  return ordinalDocDate(dateStr);
+}
+
+function fmtDate(dateStr) {
+  return formatDocDate(dateStr || new Date());
+}
+
+function totalGrossKg(pieces) {
+  let lbs = 0;
+  (pieces || []).forEach(p => { lbs += parseFloat(p.gross_lbs) || 0; });
+  return (lbs * 0.453592).toFixed(2);
+}
+
+function buildCOOHtml(inv, pl, sigDataUrl) {
+  const lineItems = pl?.lineItems || parseLineItems(inv);
+  const pieces = pl?.pieces || [];
+  const mfrs = guessManufacturers(lineItems);
+  const factory = mfrs[0];
+  const manufacturer = mfrs.join('\n\n');
+  const goodsDesc = pl?.goods_desc || 'Technical training equipment and systems';
+  const marks = pieces.map(p => p.label || '').filter(Boolean).join(', ') || inv.inv_number || '—';
+  const pcs = pieces.length || lineItems.reduce((s, it) => s + (parseInt(it.qty, 10) || 1), 0) || 1;
+  const grossKg = totalGrossKg(pieces);
+  const portUnload = lastLine(inv.end_user) || lastLine(inv.client_addr) || '—';
+  const pointOrigin = inv.country_of_origin
+    ? (inv.country_of_origin.toUpperCase().includes('USA') ? 'New York, New York, USA' : inv.country_of_origin)
+    : 'New York, New York, USA';
+  const mode = (inv.freight_mode === 'air' || /\bAIR\b|AIR FREIGHT/i.test(`${inv.type_of_move||''} ${inv.notes||''}`)) ? 'air' : 'ocean';
+  const typeMove = (inv.type_of_move || '').trim() || ((inv.incoterms || 'Ex Works') + ' - ' + (mode === 'air' ? 'Air Freight' : 'Ocean Freight'));
+  const portLoad = (inv.port_loading || '').trim() || (mode === 'air' ? 'New York Airport' : 'New York Port');
+  const portUnloadFinal = (inv.port_unloading || '').trim() || portUnload;
+  const billName = (inv.client_name || '').trim();
+  const billAddr = (inv.client_addr || '').trim();
+  let consignee = '';
+  if (billName && billAddr) consignee = billAddr.toUpperCase().indexOf(billName.toUpperCase()) === 0 ? billAddr : (billName + '\n' + billAddr);
+  else consignee = billName || billAddr || inv.client_name || '—';
+  const fwdAgent = inv.carrier || '—';
+  const certDate = ordinalDate(inv.inv_date || pl?.pl_date);
+  const displayDate = fmtDate(inv.inv_date || pl?.pl_date);
+
+  const sigImg = sigDataUrl
+    ? `<img src="${sigDataUrl}" alt="Signature">`
+    : '<div style="height:52px;border-bottom:1px solid #aaa;width:220px;margin:0 auto 4px;"></div>';
+
+  const mapped = (val) => `<span class="coo-mapped">${esc(val)}</span>`;
+
+  return `
+    <div class="coo-title">CERTIFICATE OF U.S.A. ORIGIN</div>
+
+    <div class="coo-row">
+      <div class="coo-label">Factory:</div>
+      <div class="coo-val">${mapped(factory)}</div>
+      <div class="coo-label" style="min-width:60px;">Date:</div>
+      <div class="coo-val" style="flex:0 0 180px;">${mapped(displayDate)}</div>
+    </div>
+
+    <div class="coo-row">
+      <div class="coo-label">Shipper/Supplier<br>Name and Address:</div>
+      <div class="coo-val coo-fixed"><strong>TECHNOLOGIES INTERNATIONAL, LLC</strong><br>
+        3149 Broadway, Suite 16<br>New York, NY 10027<br>
+        Phone: 646.216.9043 / Fax: 646.706.9043</div>
+    </div>
+
+    <div class="coo-row">
+      <div class="coo-label">Forwarding Agent<br>Name &amp; Address:</div>
+      <div class="coo-val">${mapped(fwdAgent)}</div>
+    </div>
+
+    <div class="coo-row">
+      <div class="coo-label">Exporter of Record:</div>
+      <div class="coo-val coo-fixed"><strong>TECHNOLOGIES INTERNATIONAL, LLC</strong><br>
+        3149 Broadway, Suite 16<br>New York, NY 10027<br>
+        Phone: 646.216.9043 / Fax: 646.706.9043</div>
+    </div>
+
+    <div class="coo-row">
+      <div class="coo-label">Consignee / Bill To:</div>
+      <div class="coo-val">${mapped(consignee)}</div>
+    </div>
+
+    <div class="coo-row">
+      <div class="coo-label">Point (State)<br>of Origin:</div>
+      <div class="coo-val">${mapped(pointOrigin)}</div>
+      <div class="coo-label">Port of Loading:</div>
+      <div class="coo-val">${mapped(portLoad)}</div>
+    </div>
+
+    <div class="coo-row">
+      <div class="coo-label">Port of Unloading:</div>
+      <div class="coo-val">${mapped(portUnloadFinal)}</div>
+      <div class="coo-label">Type of Move:</div>
+      <div class="coo-val">${mapped(typeMove)}</div>
+    </div>
+
+    <table class="coo-table">
+      <thead>
+        <tr>
+          <th style="width:22%;">Marks</th>
+          <th style="width:8%;text-align:center;">Pcs.</th>
+          <th>Description of Goods &amp;/or Services</th>
+          <th style="width:14%;text-align:center;">Gross<br>Weight</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${mapped(marks)}</td>
+          <td style="text-align:center;">${mapped(String(pcs))}</td>
+          <td>${mapped(goodsDesc)}</td>
+          <td style="text-align:center;">${mapped(grossKg + ' Kg')}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="coo-row">
+      <div class="coo-label">Name and Address<br>of Manufacturer:</div>
+      <div class="coo-val">${mapped(manufacturer)}</div>
+    </div>
+
+    <div class="coo-cert">
+      THE UNDERSIGNED, <strong>DAVID W. HANZAL</strong> (PRESIDENT) DOES HEREBY DECLARE/CERTIFY FOR THE ABOVE NAMED
+      MANUFACTURER THAT THE GOODS AS DESCRIBED ABOVE WERE SHIPPED AND CONSIGNED AS INDICATED AND ARE PRODUCTS OF
+      U.S.A. ORIGIN. DATED THIS ${certDate}.
+    </div>
+
+    <div class="coo-sig">
+      ${sigImg}
+      <div class="name">DAVID W. HANZAL</div>
+      <div class="title">PRESIDENT</div>
+      <div class="title">TECHNOLOGIES INTERNATIONAL, LLC</div>
+    </div>`;
+}
+
+async function renderCOO() {
+  if (!currentInv) return;
+  const sig = await getSignatureB64();
+  document.getElementById('doc').innerHTML = buildCOOHtml(currentInv, currentPl, sig);
+}
+
+async function loadInvoice(id) {
+  document.getElementById('status').textContent = 'Loading invoice...';
+  try {
+    const r = await api('get_invoice', {id});
+    currentInv = r.invoice;
+    if (currentInv.pl_data) {
+      try {
+        currentPl = typeof currentInv.pl_data === 'string' ? JSON.parse(currentInv.pl_data) : currentInv.pl_data;
+      } catch(e) { currentPl = null; }
+    } else {
+      currentPl = null;
+    }
+    document.getElementById('welcome').style.display = 'none';
+    document.getElementById('preview').style.display = 'block';
+    document.getElementById('back-link').href = '/portal/invoices/?inv=' + id;
+    document.getElementById('status').textContent = (currentInv.inv_number || 'Invoice') + (currentPl ? ' · PL data loaded' : ' · No packing list saved yet');
+    await renderCOO();
+  } catch(e) {
+    document.getElementById('status').textContent = 'Error: ' + e.message;
+  }
+}
+
+async function printCOO() {
+  await renderCOO();
+  window.print();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const invParam = new URLSearchParams(window.location.search).get('inv');
+  if (invParam) loadInvoice(parseInt(invParam, 10));
+  else document.getElementById('status').textContent = 'No invoice selected';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TI Packing List</title>
+<style>
+:root {
+  --teal:#0a7b8a; --teal-dark:#065f6b; --teal-light:#e8f4f6;
+  --gray-100:#f5f5f5; --gray-200:#e0e0e0; --gray-600:#666; --gray-800:#333;
+  --gold:#f0a500; --red:#c0392b; --green:#27ae60; --white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0;color:var(--gray-800);}
+#app{display:flex;height:100vh;overflow:hidden;}
+#sidebar{width:280px;min-width:280px;max-width:280px;background:#1a1a2e;color:#ccc;display:flex;flex-direction:column;overflow:hidden;}
+#main{flex:1;min-width:0;display:flex;flex-direction:column;overflow-y:auto;}
+#sidebar-header{background:var(--teal-dark);padding:16px;color:white;}
+#sidebar-header h2{font-size:15px;color:white;}
+#sidebar-header p{font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px;}
+#sidebar-toolbar{padding:10px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;gap:6px;}
+.btn-sm{padding:6px 10px;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;}
+.btn-teal{background:var(--teal);color:white;}
+.btn-teal:hover{background:var(--teal-dark);}
+.btn-gray{background:rgba(255,255,255,0.15);color:white;}
+.btn-gray:hover{background:rgba(255,255,255,0.25);}
+#inv-search{width:calc(100% - 16px);padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:white;font-size:12px;margin:8px;}
+#inv-search::placeholder{color:rgba(255,255,255,0.4);}
+#inv-list{flex:1;overflow-y:auto;padding:6px;}
+.inv-item{padding:10px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;transition:all 0.15s;}
+.inv-item:hover{background:rgba(255,255,255,0.08);}
+.inv-item.active{background:rgba(10,123,138,0.3);border-color:var(--teal);}
+.inv-item-num{font-size:12px;font-weight:700;color:white;}
+.inv-item-client{font-size:11px;color:#aaa;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#welcome{padding:40px;text-align:center;color:#888;}
+#welcome h3{font-size:22px;color:var(--teal);margin-bottom:12px;}
+#pl-editor{display:none;flex-direction:column;flex:1;}
+#editor-toolbar{background:white;border-bottom:2px solid var(--teal);padding:10px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#editor-toolbar h3{flex:1;font-size:15px;color:var(--teal-dark);}
+.btn{padding:7px 14px;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;}
+.btn-save{background:var(--teal);color:white;}
+.btn-save:hover{background:var(--teal-dark);}
+.btn-print{background:var(--gray-800);color:white;}
+.btn-pdf{background:var(--red);color:white;}
+#editor-body{padding:20px;overflow-y:auto;}
+.form-section{background:white;border-radius:8px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.form-section h4{font-size:13px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--gray-200);}
+.form-row{display:flex;gap:12px;margin-bottom:10px;}
+.form-group{flex:1;}
+.form-group label{display:block;font-size:11px;color:var(--gray-600);margin-bottom:4px;font-weight:600;text-transform:uppercase;}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:7px 10px;border:1px solid var(--gray-200);border-radius:4px;font-size:12px;font-family:Arial,sans-serif;}
+.form-group textarea{resize:vertical;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--teal);}
+/* Pieces table */
+.pieces-table{width:100%;border-collapse:collapse;font-size:12px;}
+.pieces-table th{background:var(--teal);color:white;padding:8px 6px;text-align:left;font-size:11px;}
+.pieces-table td{padding:6px;border-bottom:1px solid var(--gray-200);vertical-align:middle;}
+.pieces-table input,.pieces-table select,.pieces-table textarea{width:100%;border:none;background:transparent;font-size:12px;padding:2px 4px;font-family:Arial,sans-serif;}
+.pieces-table input:focus,.pieces-table select:focus,.pieces-table textarea:focus{outline:1px solid var(--teal);background:white;border-radius:2px;}
+/* Items sub-table inside piece */
+.items-subtable{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;}
+.items-subtable th{background:#e8f4f6;color:var(--teal-dark);padding:4px 6px;font-size:10px;}
+.items-subtable td{padding:4px 6px;border-bottom:1px solid #f0f0f0;}
+.items-subtable input{width:100%;border:1px solid #e0e0e0;border-radius:3px;padding:2px 4px;font-size:11px;}
+/* Totals */
+.totals-bar{background:white;border-radius:8px;padding:14px 18px;margin-bottom:16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;}
+.tot-cell{text-align:center;}
+.tot-num{font-size:18px;font-weight:700;color:var(--teal-dark);}
+.tot-label{font-size:11px;color:#888;}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--gray-800);color:white;padding:12px 20px;border-radius:6px;font-size:13px;display:none;z-index:9999;}
+#toast.success{background:var(--green);}
+#toast.error{background:var(--red);}
+#unsaved-bar{background:#fff3cd;border-bottom:2px solid var(--gold);padding:8px 20px;font-size:12px;color:#856404;display:none;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;}
+.modal-overlay.active{display:flex;}
+.modal{background:white;border-radius:8px;padding:24px;width:500px;max-width:90vw;}
+.modal h3{font-size:16px;color:var(--teal-dark);margin-bottom:16px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
+
+@media print {
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  body,html{margin:0;padding:0;background:white;}
+  #app,#sidebar,#main,#pl-editor,#editor-toolbar,#editor-body,#unsaved-bar{display:block !important;border:none !important;box-shadow:none !important;overflow:visible !important;}
+  #sidebar{display:none !important;}
+  #main{width:100% !important;}
+  #editor-toolbar,#editor-body,#unsaved-bar,#welcome{display:none !important;}
+  #pl-editor{display:block !important;}
+  #print-area{display:block !important;}
+  .no-print{display:none !important;}
+  @page{size:letter;margin:0.45in 0.5in 0.65in 0.5in;}
+  thead{display:table-header-group;}
+  tbody{display:table-row-group;}
+  /* page numbers handled by @page margin boxes */
+}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h2>📦 Packing Lists</h2>
+      <p id="sidebar-user">Loading...</p>
+    </div>
+    <div id="sidebar-toolbar">
+      <button class="btn-sm btn-gray" onclick="loadInvoices()">↻ Refresh</button>
+    </div>
+    <input type="text" id="inv-search" placeholder="Search invoices..." oninput="filterInvoices(this.value)">
+    <div id="inv-list"><div style="text-align:center;padding:20px;color:#888;font-size:12px;">Loading...</div></div>
+  </div>
+
+  <div id="main">
+    <div id="unsaved-bar">⚠ Unsaved packing list changes. Click Save.</div>
+
+    <div id="welcome" style="padding:40px;text-align:center;color:#888;">
+      <h3 style="font-size:22px;color:var(--teal);margin-bottom:12px;">📦 Packing List Module</h3>
+      <p>Select an invoice from the sidebar to create or edit its packing list.</p>
+      <p style="margin-top:12px;font-size:12px;color:#aaa;">All header data (client, ship-to, PO number, etc.) is pulled from the invoice automatically.</p>
+      <div id="api-status" style="margin-top:16px;font-size:12px;">Connecting...</div>
+      <div style="margin-top:8px;font-size:11px;color:#bbb;">pl-v2 ✓</div>
+    </div>
+
+    <div id="pl-editor">
+      <div id="editor-toolbar" class="no-print">
+        <h3 id="editor-title">Packing List</h3>
+        <button class="btn btn-save" onclick="savePL()">💾 Save</button>
+        <button class="btn btn-print" onclick="printPL()" style="background:var(--gray-800);color:white;">🖨 Print</button>
+        <button class="btn btn-pdf" onclick="downloadPDF()" style="background:var(--red);color:white;">⬇ Save PDF</button>
+        <a class="btn" id="inv-link" href="/portal/invoices/" style="background:#1a6b5a;color:white;text-decoration:none;margin-left:auto;">← Back to Invoice</a>
+      </div>
+
+      <div id="editor-body">
+
+        <!-- Invoice data (read-only display, editable overrides) -->
+        <div class="form-section no-print" style="background:#f0f8fa;border:1px solid #b0d8df;">
+          <h4 style="color:var(--teal-dark);">Header — pulled from invoice (read-only) &nbsp;<span style="font-size:10px;font-weight:400;color:#888;">Edit these on the invoice, they'll update here automatically</span></h4>
+          <div class="form-row">
+            <div class="form-group"><label>Invoice #</label><input type="text" id="ph-inv-num" readonly style="background:#e8f4f6;color:#333;"></div>
+            <div class="form-group"><label>Invoice Date</label><input type="text" id="ph-inv-date" readonly style="background:#e8f4f6;"></div>
+            <div class="form-group"><label>Client PO #</label><input type="text" id="ph-po-num" readonly style="background:#e8f4f6;font-weight:700;"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Client / Bill To Name</label><input type="text" id="ph-client-name" readonly style="background:#e8f4f6;"></div>
+            <div class="form-group" style="flex:2;">
+              <label>Consignee / Bill To Address <span style="color:#888;font-weight:400;">(prints on this Packing List — editable override)</span></label>
+              <textarea id="ph-bill-to" rows="4" oninput="markUnsaved()" placeholder="Consignee / Bill To address for this packing list"></textarea>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                <button type="button" class="btn" style="background:#e8f4f6;color:#065f6b;border:1px solid #b0d8df;padding:4px 8px;font-size:11px;" onclick="setPlConsigneeFromInvoice('bill')">Use Invoice Bill To</button>
+                <button type="button" class="btn" style="background:#e8f4f6;color:#065f6b;border:1px solid #b0d8df;padding:4px 8px;font-size:11px;" onclick="setPlConsigneeFromInvoice('ship')">Use Invoice Ship To</button>
+              </div>
+            </div>
+            <div class="form-group"><label>End User</label><textarea id="ph-end-user" rows="2" readonly style="background:#e8f4f6;"></textarea></div>
+          </div>
+          <p style="font-size:11px;color:#666;margin:6px 0 0;">Edit the Consignee address above if it should differ from the invoice. Changes are saved with this packing list only.</p>
+          <div class="form-row">
+            <div class="form-group"><label>Incoterms</label><input type="text" id="ph-incoterms" readonly style="background:#e8f4f6;"></div>
+            <div class="form-group"><label>Currency</label><input type="text" id="ph-currency" readonly style="background:#e8f4f6;"></div>
+            <div class="form-group"><label>Country of Origin</label><input type="text" id="ph-origin" readonly style="background:#e8f4f6;"></div>
+          </div>
+        </div>
+
+        <!-- PL-specific fields -->
+        <div class="form-section no-print">
+          <h4>Packing List Details</h4>
+          <div class="form-row">
+            <div class="form-group"><label>PL Number</label><input type="text" id="pl-number" placeholder="PL-2026-0001" oninput="markUnsaved()"></div>
+            <div class="form-group"><label>PL Date</label><input type="date" id="pl-date" oninput="markUnsaved()"></div>
+            <div class="form-group"><label>Shipment Reference</label><input type="text" id="pl-shipment-ref" placeholder="Shipment 1 of 3" oninput="markUnsaved()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:3;">
+              <label>Description of Goods (single line — appears on document)</label>
+              <input type="text" id="pl-goods-desc" placeholder="Technical training equipment and systems" oninput="markUnsaved()">
+            </div>
+            <div class="form-group">
+              <label>NCM / HS Code</label>
+              <input type="text" id="pl-ncm" placeholder="9023.00.00" oninput="markUnsaved()">
+            </div>
+            <div class="form-group">
+              <label>ECCN</label>
+              <input type="text" id="pl-eccn" placeholder="EAR99" oninput="markUnsaved()">
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:10px;">
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:6px;">
+                Certification Statement
+                <span style="font-size:10px;font-weight:400;color:#888;">(auto-fills from piece origins — edit to override)</span>
+              </label>
+              <textarea id="cert-custom-text" rows="2" oninput="markUnsaved()"
+                placeholder="Leave blank to auto-generate from Country of Origin on each piece, or type a custom statement here."
+                style="font-size:11px;color:#444;resize:vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totals bar -->
+        <div class="totals-bar no-print" id="totals-bar">
+          <div class="tot-cell"><div class="tot-num" id="tot-pieces">0</div><div class="tot-label">Pieces</div></div>
+          <div class="tot-cell"><div class="tot-num" id="tot-gross-lbs">0 lbs</div><div class="tot-label">Total Gross (lbs)</div></div>
+          <div class="tot-cell"><div class="tot-num" id="tot-gross-kg">0 kg</div><div class="tot-label">Total Gross (kg)</div></div>
+          <div class="tot-cell"><div class="tot-num" id="tot-net-lbs">0 lbs</div><div class="tot-label">Total Net (lbs)</div></div>
+          <div class="tot-cell"><div class="tot-num" id="tot-cbm">0 m³</div><div class="tot-label">Total Volume</div></div>
+        </div>
+
+        <!-- Line Items -->
+        <div class="form-section no-print">
+          <h4>Line Items — Shipment Contents
+            &nbsp;<button class="btn-sm btn-teal" onclick="syncFromInvoice()" style="font-size:11px;">↻ Sync from Invoice</button>
+            &nbsp;<span style="font-size:10px;font-weight:400;color:#888;">Edits here sync back to invoice on Save</span>
+          </h4>
+          <div id="line-items-container"><div style="font-size:12px;color:#aaa;padding:8px;">Loading...</div></div>
+        </div>
+
+        <!-- Pieces -->
+        <div class="form-section no-print">
+          <h4>Pieces / Crates &nbsp;
+            <button class="btn-sm btn-teal" onclick="addPiece()" style="font-size:11px;">+ Add Piece</button>
+            &nbsp;<span style="font-size:10px;font-weight:400;color:#888;">Dimensions in inches · Weights in lbs (auto-converts to kg/cm)</span>
+          </h4>
+          <div id="pieces-container"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="print-area" style="display:none;"></div>
+
+<script src="/portal/invoices/doc-date.js"></script>
+<script>
+// ============================================================
+// AUTH + GLOBALS
+// ============================================================
+const AUTH = (() => {
+  try { const s = sessionStorage.getItem('tikitmeer_auth'); return s ? JSON.parse(s) : {user:'dhanzal',pass:'aA292199',name:'David Hanzal'}; }
+  catch(e) { return {user:'dhanzal',pass:'aA292199',name:'David Hanzal'}; }
+})();
+
+const API_BASE = '/portal/invoices/invoice-api.php';
+let currentInvId = null;
+let currentInvData = null;
+let pieces = []; // [{label, len_in, wid_in, ht_in, gross_lbs, net_lbs, items:[{item_num, description, qty}]}]
+let plData = {}; // saved PL fields
+
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = type; t.style.display = 'block';
+  setTimeout(() => t.style.display='none', 3500);
+}
+function markUnsaved() { document.getElementById('unsaved-bar').style.display = 'block'; }
+function markSaved()   { document.getElementById('unsaved-bar').style.display = 'none'; }
+
+async function api(action, data={}) {
+  const r = await fetch(API_BASE, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action, auth_user:AUTH.user, auth_pass:AUTH.pass, ...data})
+  });
+  const text = await r.text();
+  let j;
+  try { j = JSON.parse(text); } catch(e) { throw new Error('Server returned non-JSON: ' + text.substring(0,120)); }
+  if (!j.success) throw new Error(j.error || 'API error');
+  return j;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sidebar-user').textContent = AUTH.name || AUTH.user;
+  // Check for ?inv= param
+  const urlParams = new URLSearchParams(window.location.search);
+  const invParam = urlParams.get('inv');
+  const isEmbed = urlParams.get('embed') === '1';
+  if (isEmbed) {
+    document.body.style.overflow = 'hidden';
+    const app = document.getElementById('app');
+    if (app) app.style.visibility = 'hidden';
+  }
+  ping();
+  loadInvoices().then(() => {
+    if (invParam) openInvoice(parseInt(invParam));
+  });
+});
+
+/** Used by invoice Combined Pack — export print HTML once loaded */
+window.TI_GET_COMBINE_HTML = async function() {
+  if (!currentInvId || !currentInvData) return null;
+  const sig = await getSignatureB64();
+  const html = buildPrintHTML(sig);
+  const plNum = document.getElementById('pl-number')?.value || currentInvData.inv_number || 'Packing List';
+  return { html, label: plNum, title: plNum };
+};
+
+async function ping() {
+  try {
+    const r = await fetch(API_BASE, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'ping', auth_user:AUTH.user, auth_pass:AUTH.pass})
+    });
+    const text = await r.text();
+    let json;
+    try { json = JSON.parse(text); } catch(e2) {
+      document.getElementById('api-status').innerHTML = '<span style="color:var(--red);">✗ Non-JSON response: ' + text.substring(0,100) + '</span>';
+      return;
+    }
+    if (json.success) {
+      document.getElementById('api-status').innerHTML = '<span style="color:var(--green);">✓ API OK · ' + (AUTH.name||AUTH.user) + '</span>';
+    } else {
+      document.getElementById('api-status').innerHTML = '<span style="color:var(--red);">✗ ' + (json.error||'unknown') + '</span>';
+    }
+  } catch(e) {
+    document.getElementById('api-status').innerHTML = '<span style="color:var(--red);">✗ Fetch failed: ' + e.message + '</span>';
+  }
+}
+
+// ============================================================
+// INVOICE LIST
+// ============================================================
+let allInvoices = [];
+async function loadInvoices() {
+  try {
+    const r = await api('list_invoices');
+    allInvoices = r.invoices || [];
+    renderList(allInvoices);
+  } catch(e) {
+    document.getElementById('inv-list').innerHTML = '<div style="color:#f88;padding:12px;font-size:11px;">List error: '+e.message+'</div>';
+    console.error('loadInvoices error:', e.message);
+  }
+}
+function renderList(list) {
+  const el = document.getElementById('inv-list');
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#888;font-size:12px;">No invoices found.</div>'; return; }
+  el.innerHTML = list.map(inv => `
+    <div class="inv-item ${inv.id==currentInvId?'active':''}" onclick="openInvoice(${inv.id})" data-id="${inv.id}">
+      <div class="inv-item-num">${inv.inv_number}</div>
+      <div class="inv-item-client">${inv.client_name||'—'}</div>
+    </div>`).join('');
+}
+function filterInvoices(q) {
+  renderList(allInvoices.filter(i =>
+    (i.inv_number||'').toLowerCase().includes(q.toLowerCase()) ||
+    (i.client_name||'').toLowerCase().includes(q.toLowerCase())
+  ));
+}
+
+// ============================================================
+// OPEN INVOICE / LOAD PL
+// ============================================================
+async function openInvoice(id) {
+  currentInvId = id;
+  document.querySelectorAll('.inv-item').forEach(e=>e.classList.remove('active'));
+  const a = document.querySelector(`.inv-item[data-id="${id}"]`);
+  if (a) a.classList.add('active');
+
+  document.getElementById('welcome').style.display = 'none';
+  const ed = document.getElementById('pl-editor');
+  ed.style.display = 'flex';
+
+  // Update invoice link
+  document.getElementById('inv-link').href = '/portal/invoices/';
+
+  try {
+    const r = await api('get_invoice', {id});
+    currentInvData = r.invoice;
+
+    // Load existing PL data if any
+    const savedPl = r.invoice.pl_data ? (typeof r.invoice.pl_data==='string' ? JSON.parse(r.invoice.pl_data) : r.invoice.pl_data) : null;
+    plData = savedPl || {};
+    fillHeader(r.invoice);
+
+    if (savedPl && savedPl.pieces) {
+      pieces = savedPl.pieces;
+      lineItems = savedPl.lineItems || buildLineItemsFromInvoice(r.invoice);
+      document.getElementById('pl-number').value = savedPl.pl_number || '';
+      document.getElementById('pl-date').value = toDateOnlyISO(savedPl.pl_date) || toDateOnlyISO(new Date());
+      document.getElementById('pl-shipment-ref').value = savedPl.shipment_ref || '';
+      document.getElementById('pl-goods-desc').value = savedPl.goods_desc || '';
+      document.getElementById('pl-ncm').value = savedPl.ncm || '';
+      document.getElementById('pl-eccn').value = savedPl.eccn || '';
+    } else {
+      pieces = [];
+      // If invoice has no saved line_items but has a quote number, pull from quote
+      // Robust parse of line_items (handle double-encoding)
+      let _li = [];
+      if (r.invoice.line_items) {
+        let _raw = r.invoice.line_items;
+        if (typeof _raw==='string'){try{_raw=JSON.parse(_raw);}catch(e){}}
+        if (typeof _raw==='string'){try{_raw=JSON.parse(_raw);}catch(e){}}
+        _li = Array.isArray(_raw) ? _raw : [];
+      }
+      if (!_li.length && r.invoice.quote_number) {
+        try {
+          const qi = await api('get_quote_items', { quote_number: r.invoice.quote_number });
+          if (qi.items && qi.items.length) {
+            // Save them to the invoice so next time they're there
+            await api('save_line_items', { id: r.invoice.id, line_items: JSON.stringify(qi.items) });
+            r.invoice.line_items = JSON.stringify(qi.items);
+            currentInvData = r.invoice;
+          }
+        } catch(e2) { /* ignore */ }
+      }
+      lineItems = buildLineItemsFromInvoice(r.invoice);
+      document.getElementById('pl-date').value = toDateOnlyISO(new Date());
+      document.getElementById('pl-number').value = 'PL-' + (r.invoice.inv_number||'').replace('INV-','');
+      document.getElementById('pl-goods-desc').value = '';
+      document.getElementById('pl-ncm').value = savedPl.ncm || '9023.00.00';
+      document.getElementById('pl-eccn').value = 'EAR99';
+    }
+    buildInvItemsList();
+    renderLineItems();
+
+    document.getElementById('editor-title').textContent = 'PL — ' + (r.invoice.inv_number||'');
+    renderPieces();
+    updateTotals();
+    markSaved();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+function invoiceBillToBlock(inv) {
+  const name = (inv.client_name || '').trim();
+  const addr = (inv.client_addr || '').trim();
+  if (name && addr) {
+    if (addr.toUpperCase().indexOf(name.toUpperCase()) === 0) return addr;
+    return name + '\n' + addr;
+  }
+  return name || addr || '';
+}
+
+function setPlConsigneeFromInvoice(which) {
+  const inv = currentInvData || {};
+  const el = document.getElementById('ph-bill-to');
+  if (!el) return;
+  if (which === 'ship') el.value = (inv.ship_to || '').trim() || invoiceBillToBlock(inv);
+  else el.value = invoiceBillToBlock(inv);
+  markUnsaved();
+}
+
+function fillHeader(inv) {
+  const fmt = (v) => v||'';
+  document.getElementById('ph-inv-num').value    = fmt(inv.inv_number);
+  document.getElementById('ph-inv-date').value   = inv.inv_date ? toDateOnlyISO(inv.inv_date) : '';
+  document.getElementById('ph-po-num').value     = fmt(inv.po_number);
+  document.getElementById('ph-client-name').value= fmt(inv.client_name);
+  // Prefer saved PL override; otherwise default to invoice Bill To
+  const savedConsignee = (plData && plData.consignee_addr) ? String(plData.consignee_addr).trim() : '';
+  document.getElementById('ph-bill-to').value    = savedConsignee || invoiceBillToBlock(inv);
+  document.getElementById('ph-end-user').value   = fmt(inv.end_user);
+  document.getElementById('ph-incoterms').value  = fmt(inv.incoterms);
+  document.getElementById('ph-currency').value   = fmt(inv.currency);
+  document.getElementById('ph-origin').value     = fmt(inv.country_of_origin) || 'USA';
+}
+
+// ============================================================
+// PIECES
+// ============================================================
+function addPiece() {
+  pieces.push({label:'Crate '+(pieces.length+1), len_in:'', wid_in:'', ht_in:'', gross_lbs:'', net_lbs:'', items:[]});
+  renderPieces();
+  markUnsaved();
+}
+
+function removePiece(idx) {
+  if (!confirm('Remove this piece?')) return;
+  pieces.splice(idx,1);
+  renderPieces();
+  updateTotals();
+  markUnsaved();
+}
+
+function updatePiece(idx, field, val) {
+  if (!pieces[idx]) return;
+  pieces[idx][field] = val;
+  updateTotals();
+  markUnsaved();
+}
+
+// Build line items list from invoice data — first line of description only
+function buildLineItemsFromInvoice(inv) {
+  try {
+    let li = [];
+    if (inv && inv.line_items) {
+      let raw = inv.line_items;
+      if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} }
+      if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} } // double-encoded
+      li = Array.isArray(raw) ? raw : [];
+    }
+    return li.map(item => {
+      // spec_item_num is from quotation engine, item_num from invoice editor
+      // item_num is a row counter (1,2,3); part_no is the model number — use part_no as identifier
+      const partNo = (item.part_no || item.model_id || item.model || '').trim();
+      // item_num is the user-set item number (1, 22, 3 etc.) — keep it exactly as stored
+      const itemNum = String(item.item_num || '').trim();
+      // Description: first line only — split on newline first,
+      // then trim at spec keywords if still long
+      let desc = (item.description || item.title || '').trim();
+      // Split on actual newline
+      desc = desc.split(/\n/)[0].trim();
+      // If still long, cut at first spec marker
+      desc = desc.split(/\s*QTY[-\s]/i)[0].trim();
+      desc = desc.split(/\s*Qty[-\s]/)[0].trim();
+      desc = desc.split('•')[0].trim();
+      desc = desc.split('Includes:')[0].trim();
+      desc = desc.split('\t')[0].trim();
+      // Final safety cap at 120 chars
+      if (desc.length > 120) desc = desc.substring(0, 120).trim();
+      return {
+        item_num:    itemNum,
+        part_no:     partNo,
+        description: desc,
+        qty:         item.qty || 1,
+        eccn:        item.eccn || 'EAR99',
+        origin:      item.origin || 'USA'
+      };
+    });
+  } catch(e) { return []; }
+}
+
+// Render the line items table (editable)
+function renderLineItems() {
+  const container = document.getElementById('line-items-container');
+  if (!container) return;
+  if (!lineItems.length) {
+    container.innerHTML = '<div style="font-size:12px;color:#aaa;padding:12px;">No line items — save the invoice first with line items added.</div>';
+    return;
+  }
+  // Build table with createElement so event listeners work reliably
+  const table = document.createElement('table');
+  table.style.cssText = 'width:100%;border-collapse:collapse;font-size:12px;';
+
+  // Header
+  table.innerHTML = `<thead><tr style="background:var(--teal);color:white;">
+    <th style="padding:7px 8px;width:35px;text-align:center;">#</th>
+    <th style="padding:7px 8px;width:70px;">Item No.</th>
+    <th style="padding:7px 8px;width:110px;">Part No.</th>
+    <th style="padding:7px 8px;">Description (first line — editable)</th>
+    <th style="padding:7px 8px;width:55px;text-align:center;">Qty</th>
+    <th style="padding:7px 8px;width:80px;">ECCN</th>
+    <th style="padding:7px 8px;width:60px;">Origin</th>
+  </tr></thead>`;
+
+  const tbody = document.createElement('tbody');
+
+  lineItems.forEach((item, i) => {
+    const tr = document.createElement('tr');
+    tr.style.background = i%2===0 ? '#fff' : '#f9f9f9';
+
+    // Helper to make an editable cell
+    function makeCell(val, field, type, style) {
+      const td = document.createElement('td');
+      td.style.padding = '4px 6px';
+      const inp = document.createElement('input');
+      if (type) inp.type = type;
+      inp.value = val || '';
+      inp.style.cssText = (style || '') + ';width:100%;border:2px solid #0a7b8a;background:#fff;border-radius:3px;padding:4px 6px;box-sizing:border-box;';
+      inp.addEventListener('focus', () => { inp.style.borderColor='#0a7b8a'; inp.style.boxShadow='0 0 0 2px rgba(10,123,138,0.2)'; });
+      inp.addEventListener('blur',  () => { inp.style.borderColor='#0a7b8a'; inp.style.boxShadow='none'; });
+      inp.addEventListener('input', function() {
+        if (type === 'number') {
+          lineItems[i][field] = parseFloat(this.value) || (field==='qty'?1:0);
+        } else {
+          lineItems[i][field] = this.value;
+        }
+        markUnsaved();
+      });
+      td.appendChild(inp);
+      return td;
+    }
+
+    // # cell
+    const numTd = document.createElement('td');
+    numTd.style.cssText = 'padding:6px 8px;text-align:center;color:#888;';
+    numTd.textContent = i+1;
+    tr.appendChild(numTd);
+
+    tr.appendChild(makeCell(item.item_num,    'item_num',    null,   'font-size:12px;text-align:center;'));
+    tr.appendChild(makeCell(item.part_no||'', 'part_no',     null,   'font-size:11px;font-weight:700;color:#0a7b8a;'));
+    tr.appendChild(makeCell(item.description, 'description', null,   'font-size:12px;'));
+    tr.appendChild(makeCell(item.qty||1,      'qty',         'number','font-size:12px;text-align:center;'));
+    tr.appendChild(makeCell(item.eccn||'',    'eccn',        null,   'font-size:11px;'));
+    tr.appendChild(makeCell(item.origin||'USA','origin',     null,   'font-size:11px;'));
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+
+// Cache of invoice line items with first-line descriptions only
+let cachedInvItems = [];
+
+function buildInvItemsList() {
+  // Build from lineItems (already first-line only)
+  cachedInvItems = lineItems.map(item => ({
+    part_no: item.part_no || item.item_num || '',
+    label: (item.description || item.item_num || '').substring(0, 80),
+    qty: item.qty || 1
+  })).filter(item => item.part_no || item.label);
+}
+
+function addItemToPiece(idx) {
+  if (!pieces[idx]) return;
+  // Add blank row — user picks from dropdown
+  pieces[idx].items.push({item_num:'', label:'', qty:null});
+  renderPieces();
+  markUnsaved();
+}
+
+function removeItemFromPiece(pieceIdx, itemIdx) {
+  pieces[pieceIdx].items.splice(itemIdx,1);
+  renderPieces();
+  markUnsaved();
+}
+
+function updatePieceItem(pieceIdx, itemIdx, field, val) {
+  if (!pieces[pieceIdx] || !pieces[pieceIdx].items[itemIdx]) return;
+  pieces[pieceIdx].items[itemIdx][field] = val;
+  markUnsaved();
+}
+
+function in2cm(v) { return v ? (parseFloat(v)*2.54).toFixed(1) : '—'; }
+function lbs2kg(v) { return v ? (parseFloat(v)*0.453592).toFixed(2) : '—'; }
+function cbm(l,w,h) {
+  const lc=parseFloat(l)*2.54/100, wc=parseFloat(w)*2.54/100, hc=parseFloat(h)*2.54/100;
+  return (lc&&wc&&hc) ? (lc*wc*hc).toFixed(4) : '0';
+}
+
+function updateTotals() {
+  let totalGrossLbs=0, totalNetLbs=0, totalCbm=0;
+  pieces.forEach(p => {
+    totalGrossLbs += parseFloat(p.gross_lbs)||0;
+    totalNetLbs += parseFloat(p.net_lbs)||0;
+    const c = parseFloat(cbm(p.len_in,p.wid_in,p.ht_in));
+    if (!isNaN(c)) totalCbm += c;
+  });
+  document.getElementById('tot-pieces').textContent = pieces.length;
+  document.getElementById('tot-gross-lbs').textContent = totalGrossLbs.toFixed(2)+' lbs';
+  document.getElementById('tot-gross-kg').textContent = (totalGrossLbs*0.453592).toFixed(2)+' kg';
+  document.getElementById('tot-net-lbs').textContent = totalNetLbs.toFixed(2)+' lbs';
+  document.getElementById('tot-cbm').textContent = totalCbm.toFixed(4)+' m³';
+}
+
+function renderPieces() {
+  const container = document.getElementById('pieces-container');
+  if (!container) return;
+  if (!pieces.length) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:12px;">No pieces yet. Click + Add Piece to start.</div>';
+    return;
+  }
+
+  // Use cached invoice items (built when invoice loaded)
+  if (!cachedInvItems.length) buildInvItemsList();
+
+  container.innerHTML = pieces.map((piece, i) => {
+    const grossKg = piece.gross_lbs ? lbs2kg(piece.gross_lbs)+' kg' : '—';
+    const netKg   = piece.net_lbs   ? lbs2kg(piece.net_lbs)+' kg'   : '—';
+    const lenCm   = piece.len_in    ? in2cm(piece.len_in)+' cm'     : '—';
+    const widCm   = piece.wid_in    ? in2cm(piece.wid_in)+' cm'     : '—';
+    const htCm    = piece.ht_in     ? in2cm(piece.ht_in)+' cm'      : '—';
+    const vol     = cbm(piece.len_in, piece.wid_in, piece.ht_in);
+
+    // Items rows — first-line description only, qty optional
+    const itemsHtml = (piece.items||[]).map((item, j) => {
+      const opts = cachedInvItems.map(li =>
+        `<option value="${escH(li.part_no)}" data-label="${escH(li.label)}" data-qty="${li.qty}" ${item.item_num===li.part_no?'selected':''}>${escH(li.part_no)} — ${escH(li.label)}</option>`
+      ).join('');
+      return `<tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:4px 6px;width:55%;">
+          <select oninput="
+            const opt=this.options[this.selectedIndex];
+            updatePieceItem(${i},${j},'item_num',this.value);
+            updatePieceItem(${i},${j},'label',opt.dataset.label||'');
+            " style="width:100%;font-size:11px;padding:4px;border:1px solid #ddd;border-radius:3px;">
+            <option value="">— select item from invoice —</option>${opts}
+          </select>
+          ${item.item_num ? `<div style="font-size:10px;color:var(--teal-dark);margin-top:2px;">${escH(item.label||item.item_num)}</div>` : ''}
+        </td>
+        <td style="padding:4px 6px;text-align:center;">
+          <input type="number" value="${item.qty===null||item.qty===undefined?'':item.qty}" min="1"
+            placeholder="all"
+            oninput="updatePieceItem(${i},${j},'qty',this.value===''?null:parseFloat(this.value)||1)"
+            title="Leave blank to use invoice qty"
+            style="width:55px;font-size:11px;text-align:center;border:1px solid #ddd;border-radius:3px;padding:3px;">
+          <div style="font-size:9px;color:#aaa;margin-top:1px;">blank=all</div>
+        </td>
+        <td style="padding:4px 6px;text-align:center;">
+          <button onclick="removeItemFromPiece(${i},${j})" style="background:none;border:none;cursor:pointer;color:#c33;font-size:14px;">×</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div style="background:white;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;overflow:hidden;">
+      <div style="background:#0a7b8a;color:white;padding:8px 14px;display:flex;align-items:center;gap:10px;">
+        <input type="text" value="${escH(piece.label||'Crate '+(i+1))}" oninput="updatePiece(${i},'label',this.value)"
+          style="background:transparent;border:none;color:white;font-weight:700;font-size:13px;flex:1;outline:none;" placeholder="Crate label">
+        <span style="font-size:11px;opacity:0.8;">${vol!=='0' ? vol+' m³' : ''}</span>
+        <button onclick="removePiece(${i})" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;">✕</button>
+      </div>
+      <div style="padding:12px;display:grid;grid-template-columns:repeat(3,1fr) repeat(3,1fr);gap:10px;">
+        <div>
+          <div style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:3px;">Length (in)</div>
+          <input type="number" value="${piece.len_in||''}" placeholder="inches" oninput="updatePiece(${i},'len_in',this.value)" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+          <div style="font-size:10px;color:var(--teal);margin-top:2px;">${lenCm}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:3px;">Width (in)</div>
+          <input type="number" value="${piece.wid_in||''}" placeholder="inches" oninput="updatePiece(${i},'wid_in',this.value)" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+          <div style="font-size:10px;color:var(--teal);margin-top:2px;">${widCm}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:3px;">Height (in)</div>
+          <input type="number" value="${piece.ht_in||''}" placeholder="inches" oninput="updatePiece(${i},'ht_in',this.value)" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+          <div style="font-size:10px;color:var(--teal);margin-top:2px;">${htCm}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:3px;">Gross Weight (lbs)</div>
+          <input type="number" value="${piece.gross_lbs||''}" placeholder="lbs" oninput="updatePiece(${i},'gross_lbs',this.value)" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+          <div style="font-size:10px;color:var(--teal);margin-top:2px;">${grossKg}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:3px;">Net Weight (lbs)</div>
+          <input type="number" value="${piece.net_lbs||''}" placeholder="lbs" oninput="updatePiece(${i},'net_lbs',this.value)" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+          <div style="font-size:10px;color:var(--teal);margin-top:2px;">${netKg}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
+          <div style="font-size:11px;color:#888;">Volume</div>
+          <div style="font-size:14px;font-weight:700;color:var(--teal-dark);">${vol} m³</div>
+        </div>
+      </div>
+
+      <!-- Country of Origin for this piece -->
+      <div style="padding:6px 12px 8px;display:flex;align-items:center;gap:10px;border-top:1px solid #eee;background:#fafcfc;">
+        <label style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;white-space:nowrap;">Country of Origin:</label>
+        <input type="text" value="${escH(piece.country_of_origin||'USA')}"
+          oninput="updatePiece(${i},'country_of_origin',this.value)"
+          placeholder="USA / GERMANY / etc."
+          style="width:200px;padding:4px 8px;border:1.5px solid #0a7b8a;border-radius:4px;font-size:12px;font-weight:700;color:#0a7b8a;">
+        <span style="font-size:10px;color:#aaa;">Prints on packing list &amp; used for certification text</span>
+      </div>
+
+      <!-- Optional items in this piece -->
+      <div style="padding:0 12px 12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:600;color:#666;">Items in this piece <span style="font-weight:400;color:#aaa;">(optional — select from invoice or type freely)</span></span>
+          <button onclick="addItemToPiece(${i})" style="background:#e8f4f6;border:1px solid var(--teal);color:var(--teal-dark);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:11px;">+ Add Item</button>
+        </div>
+        ${piece.items && piece.items.length ? `
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr style="background:#f5f5f5;">
+            <th style="padding:4px 8px;text-align:left;">Item (from invoice)</th>
+            <th style="padding:4px 8px;text-align:center;width:70px;">Qty Override</th>
+            <th style="width:30px;"></th>
+          </tr></thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>` : '<div style="font-size:11px;color:#bbb;font-style:italic;padding:4px 0;">No items assigned — pieces can be listed without item assignment.</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// SYNC
+// ============================================================
+async function syncFromInvoice() {
+  if (!currentInvId) { showToast('No invoice loaded', 'error'); return; }
+  if (!confirm('Re-sync line items from invoice? Your current edits will be replaced.')) return;
+  try {
+    showToast('Fetching from invoice...', 'info');
+    const r = await api('get_invoice', { id: currentInvId });
+    currentInvData = r.invoice;
+    // If line_items empty, pull fresh from quote
+    let li = [];
+    if (r.invoice.line_items) {
+      let raw = r.invoice.line_items;
+      if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} }
+      if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e){} }
+      li = Array.isArray(raw) ? raw : [];
+    }
+    if (!li.length && r.invoice.quote_number) {
+      const qi = await api('get_quote_items', { quote_number: r.invoice.quote_number });
+      if (qi.items && qi.items.length) {
+        li = qi.items;
+        await api('save_line_items', { id: r.invoice.id, line_items: JSON.stringify(li) });
+        r.invoice.line_items = JSON.stringify(li);
+        currentInvData = r.invoice;
+      }
+    }
+    lineItems = buildLineItemsFromInvoice(r.invoice);
+    buildInvItemsList();
+    renderLineItems();
+    markUnsaved();
+    showToast('Synced ' + lineItems.length + ' items from invoice.', lineItems.length ? 'success' : 'error');
+  } catch(e) {
+    showToast('Sync error: ' + e.message, 'error');
+  }
+}
+
+// When saving PL, write item_num changes back to invoice line_items so both stay in sync
+async function syncLineItemsBackToInvoice() {
+  if (!currentInvId || !currentInvData) return;
+  try {
+    // Build updated line_items array with new item_nums from packing list
+    let invItems = [];
+    try {
+      invItems = currentInvData.line_items
+        ? (typeof currentInvData.line_items === 'string' ? JSON.parse(currentInvData.line_items) : currentInvData.line_items)
+        : [];
+    } catch(e) { invItems = []; }
+
+    // Update part_no in each invoice line item from packing list lineItems
+    lineItems.forEach((plItem, i) => {
+      if (invItems[i]) {
+        invItems[i].item_num = plItem.item_num;
+        if (!invItems[i].part_no) invItems[i].part_no = plItem.item_num;
+        // Only sync description if it was meaningfully changed (not a truncation artifact)
+      }
+    });
+
+    // Save updated line_items back to invoice — pass as array, API will handle it
+    const liJson = JSON.stringify(invItems);
+    await api('save_line_items', { id: currentInvId, line_items: liJson });
+    // Update local cache
+    currentInvData.line_items = JSON.stringify(invItems);
+  } catch(e) {
+    console.warn('Could not sync back to invoice:', e.message);
+    // Non-fatal — PL still saves
+  }
+}
+
+// ============================================================
+// SAVE
+// ============================================================
+async function savePL() {
+  if (!currentInvId) return;
+  // Sync item numbers back to invoice line_items
+  await syncLineItemsBackToInvoice();
+
+  const pl = {
+    pl_number:    document.getElementById('pl-number').value,
+    pl_date:      document.getElementById('pl-date').value,
+    shipment_ref: document.getElementById('pl-shipment-ref').value,
+    goods_desc:   document.getElementById('pl-goods-desc').value,
+    ncm:          document.getElementById('pl-ncm').value,
+    eccn:         document.getElementById('pl-eccn').value,
+    consignee_addr: document.getElementById('ph-bill-to').value,
+    pieces:       pieces,
+    lineItems:    lineItems
+  };
+  try {
+    await api('save_pl', {id: currentInvId, pl_data: JSON.stringify(pl)});
+    markSaved();
+    showToast('Packing list saved.', 'success');
+  } catch(e) {
+    showToast('Save error: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// PRINT / PDF
+// ============================================================
+function buildPrintHTML(sigDataUrl) {
+  const inv = currentInvData || {};
+  const today = formatDocDate(document.getElementById('pl-date').value || new Date());
+  const plNum = document.getElementById('pl-number').value || '';
+  const poNum = inv.po_number || '';
+  const goodsDesc = document.getElementById('pl-goods-desc').value || 'Technical training equipment and systems';
+  const ncm = document.getElementById('pl-ncm').value || '9023.00.00';
+  const eccn = document.getElementById('pl-eccn').value || 'EAR99';
+  const shipRef = document.getElementById('pl-shipment-ref').value || '';
+  const origin = inv.country_of_origin || 'USA';
+
+  let totalGrossLbs=0, totalNetLbs=0, totalCbm=0;
+  pieces.forEach(p => {
+    totalGrossLbs += parseFloat(p.gross_lbs)||0;
+    totalNetLbs   += parseFloat(p.net_lbs)||0;
+    totalCbm      += parseFloat(cbm(p.len_in,p.wid_in,p.ht_in));
+  });
+  const totalGrossKg = (totalGrossLbs*0.453592).toFixed(2);
+  const totalNetKg   = (totalNetLbs*0.453592).toFixed(2);
+
+  // Extra invoice data for header
+  const invNum    = inv.inv_number    || '';
+  const quoteRef  = inv.quote_number  || '';
+  const payTerms  = inv.payment_terms || '';
+  const incoterms = inv.incoterms     || '';
+  const clientName= inv.client_name   || '';
+
+  // Header HTML (repeats every page via <thead>)
+  const headerHtml = `<tr><td colspan="100" style="padding-bottom:8px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="width:50%;vertical-align:top;">
+          <img src="https://ti-kitmeer.com/images/TIlogo.png" style="height:101px;max-width:392px;object-fit:contain;display:block;margin-bottom:4px;" alt="Technologies International LLC">
+          <div style="font-size:10px;color:#666;">3149 Broadway, Suite 16 · New York, NY 10027 · USA</div>
+          <div style="font-size:10px;color:#666;">Tel: +1 (212) 217-9795 · david@tieducational.com · tieducational.com</div>
+        </td>
+        <td style="text-align:right;vertical-align:top;">
+          <div style="font-size:22px;font-weight:700;color:#0a7b8a;letter-spacing:2px;">PACKING LIST</div>
+          <div style="font-size:11px;color:#333;margin-top:3px;"><strong>${escH(plNum)}</strong>${shipRef?' — '+escH(shipRef):''}</div>
+          <div style="font-size:10px;color:#666;">${today}</div>
+          ${poNum?`<div style="font-size:10px;font-weight:700;color:#333;margin-top:2px;">Client PO: ${escH(poNum)}</div>`:''}
+          ${invNum?`<div style="font-size:10px;color:#666;">Invoice: ${escH(invNum)}</div>`:''}
+        </td>
+      </tr>
+    </table>
+    <div style="height:3px;background:#0a7b8a;border-radius:2px;margin-top:6px;"></div>
+    <table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;">
+      <tr style="background:#e8f4f6;">
+        ${clientName?`<td style="padding:3px 8px;"><strong>Client:</strong> ${escH(clientName)}</td>`:''}
+        ${quoteRef?`<td style="padding:3px 8px;"><strong>Quote Ref:</strong> ${escH(quoteRef)}</td>`:''}
+        ${payTerms?`<td style="padding:3px 8px;"><strong>Payment:</strong> ${escH(payTerms)}</td>`:''}
+        ${incoterms?`<td style="padding:3px 8px;"><strong>Incoterms:</strong> ${escH(incoterms)}</td>`:''}
+        <td style="padding:3px 8px;"><strong>Origin:</strong> ${escH(origin)}</td>
+      </tr>
+    </table>
+  </td></tr>`;
+
+  // Tfoot: visual footer — page numbers from @page (no duplication)
+  const footerHtml = `<tr><td colspan="100" style="padding-top:6px;">
+    <div style="border-top:2px solid #0a7b8a;padding-top:5px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:8px;color:#888;min-width:90px;">${today}</span>
+      <span style="text-align:center;flex:1;">
+        <span style="font-size:9px;font-weight:700;color:#0a7b8a;">Technologies International, LLC &nbsp;&middot;&nbsp; tieducational.com</span>
+        <br><span style="font-size:7.5px;color:#999;">3149 Broadway, Suite 16, New York, NY 10027 USA &nbsp;&middot;&nbsp; Tel: +1 (212) 217-9795</span>
+      </span>
+      <span style="font-size:8px;color:#888;min-width:90px;text-align:right;">${escH(plNum||invNum)}</span>
+    </div>
+  </td></tr>`;
+
+  // Parties — Consignee / Bill To from editable PL field (override)
+  const billToBlock = (document.getElementById('ph-bill-to')?.value || '').trim() || invoiceBillToBlock(inv);
+  const partiesHtml = `<tr><td colspan="100" style="padding-bottom:14px;">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <tr>
+        <td style="width:33%;vertical-align:top;padding-right:10px;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:9px;">
+            <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:5px;">Shipper / Exporter</div>
+            <div style="font-weight:700;">Technologies International, LLC</div>
+            <div style="color:#444;margin-top:3px;">3149 Broadway, Suite 16<br>New York, NY 10027, USA<br>Tel: +1 (212) 217-9795</div>
+          </div>
+        </td>
+        <td style="width:33%;vertical-align:top;padding-right:10px;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:9px;">
+            <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:5px;">Consignee / Bill To</div>
+            <div style="white-space:pre-wrap;color:#333;">${escH(billToBlock||'—')}</div>
+          </div>
+        </td>
+        <td style="width:33%;vertical-align:top;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:9px;">
+            <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:5px;">End User / Notify Party</div>
+            <div style="white-space:pre-wrap;color:#333;">${escH(inv.end_user||inv.client_name||'')}</div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+  <tr><td colspan="100" style="padding-bottom:12px;">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <tr style="background:#0a7b8a;color:white;">
+        <td style="padding:6px 10px;">Invoice #</td>
+        <td style="padding:6px 10px;">PL #</td>
+        <td style="padding:6px 10px;">Client PO #</td>
+        <td style="padding:6px 10px;">Date</td>
+        <td style="padding:6px 10px;">Incoterms</td>
+        <td style="padding:6px 10px;">Origin</td>
+      </tr>
+      <tr style="background:#e8f4f6;">
+        <td style="padding:6px 10px;font-weight:700;">${escH(inv.inv_number||'')}</td>
+        <td style="padding:6px 10px;">${escH(plNum)}</td>
+        <td style="padding:6px 10px;font-weight:700;">${escH(poNum||'—')}</td>
+        <td style="padding:6px 10px;">${today}</td>
+        <td style="padding:6px 10px;">${escH(inv.incoterms||'—')}</td>
+        <td style="padding:6px 10px;">${escH(origin)}</td>
+      </tr>
+    </table>
+  </td></tr>`;
+
+  // Goods description row + line items table
+  const liRows = lineItems.map((item, i) => `
+    <tr style="background:${i%2===0?'#fff':'#fafafa'};">
+      <td style="padding:6px 8px;text-align:center;font-weight:700;font-size:11px;color:#0a7b8a;">${escH(item.item_num||'')}</td>
+      <td style="padding:6px 8px;">${escH(item.description||'')}</td>
+      <td style="padding:6px 8px;text-align:center;">${item.qty||1}</td>
+      <td style="padding:6px 8px;font-size:9px;"><span style="display:block;">${escH(item.ncm||'9023.00.00')}</span><span style="display:block;">${escH(item.eccn||'EAR99')}</span></td>
+      <td style="padding:6px 8px;font-size:10px;">${escH(item.origin||'USA')}</td>
+    </tr>`).join('');
+
+  const goodsHtml = `<tr><td colspan="100" style="padding-bottom:12px;">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #ddd;margin-bottom:6px;">
+      <tr style="background:#f0f0f0;">
+        <td style="padding:7px 10px;font-weight:700;color:#555;">Description of Goods</td>
+        <td style="padding:7px 10px;">${escH(goodsDesc)}</td>
+        <td style="padding:7px 10px;width:140px;">NCM: <strong>${escH(ncm)}</strong> &nbsp; ECCN: <strong>${escH(eccn)}</strong></td>
+      </tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <tr style="background:#0a7b8a;color:white;">
+        <th style="padding:6px 8px;width:90px;text-align:center;">Item No.</th>
+        <th style="padding:6px 8px;">Description</th>
+        <th style="padding:6px 8px;width:40px;text-align:center;">Qty</th>
+        <th style="padding:6px 8px;width:90px;">NCM/HS &middot; ECCN</th>
+        <th style="padding:6px 8px;width:50px;">Origin</th>
+      </tr>
+      ${liRows}
+    </table>
+  </td></tr>`;
+
+  // Pieces table
+  const pieceRows = pieces.map((p, i) => {
+    const gKg = p.gross_lbs ? lbs2kg(p.gross_lbs) : '—';
+    const nKg = p.net_lbs   ? lbs2kg(p.net_lbs)   : '—';
+    const lCm = p.len_in ? in2cm(p.len_in) : '—';
+    const wCm = p.wid_in ? in2cm(p.wid_in) : '—';
+    const hCm = p.ht_in  ? in2cm(p.ht_in)  : '—';
+    const vol = cbm(p.len_in,p.wid_in,p.ht_in);
+
+    // Items sub-rows (only item numbers + qty — no long descriptions)
+    const itemsSub = (p.items||[]).filter(it=>it.item_num).map(it => {
+      const qtyStr = it.qty ? ` ×${it.qty}` : '';
+      return `<span style="display:inline-block;background:#e8f4f6;border-radius:3px;padding:1px 6px;margin:1px;font-size:10px;color:#065f6b;">${escH(it.item_num)}${qtyStr}</span>`;
+    }).join('');
+
+    return `<tr style="background:${i%2===0?'#fff':'#fafafa'};page-break-inside:avoid;break-inside:avoid;">
+      <td style="padding:7px 8px;font-weight:700;color:#0a7b8a;text-align:center;">${escH(p.label||'Crate '+(i+1))}</td>
+      <td style="padding:7px 8px;text-align:center;">${p.len_in||'—'}" × ${p.wid_in||'—'}" × ${p.ht_in||'—'}"<br><span style="color:#888;font-size:10px;">${lCm} × ${wCm} × ${hCm} cm</span></td>
+      <td style="padding:7px 8px;text-align:center;">${p.gross_lbs||'—'} lbs<br><span style="color:#888;font-size:10px;">${gKg} kg</span></td>
+      <td style="padding:7px 8px;text-align:center;">${p.net_lbs||'—'} lbs<br><span style="color:#888;font-size:10px;">${nKg} kg</span></td>
+      <td style="padding:7px 8px;text-align:center;font-size:10px;color:#666;">${vol} m³</td>
+      <td style="padding:7px 8px;text-align:center;font-size:10px;font-weight:700;">${escH(p.country_of_origin||'USA')}</td>
+      <td style="padding:7px 8px;font-size:11px;">${itemsSub||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const piecesTableHtml = `<tr class="pieces-section"><td colspan="100" style="padding-bottom:14px;">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <tr style="background:#0a7b8a;color:white;">
+        <th style="padding:7px 8px;width:120px;text-align:center;">Piece / Crate</th>
+        <th style="padding:7px 8px;text-align:center;width:170px;">Dimensions (in / cm)</th>
+        <th style="padding:7px 8px;text-align:center;width:95px;">Gross Weight</th>
+        <th style="padding:7px 8px;text-align:center;width:95px;">Net Weight</th>
+        <th style="padding:7px 8px;text-align:center;width:65px;">Volume</th>
+        <th style="padding:7px 8px;text-align:center;width:65px;">Origin</th>
+        <th style="padding:7px 8px;">Contents</th>
+      </tr>
+      ${pieceRows}
+      <!-- Totals row -->
+      <tr style="background:#0a7b8a;color:white;font-weight:700;">
+        <td colspan="1" style="padding:8px 10px;text-align:right;">TOTALS — ${pieces.length} piece${pieces.length!==1?'s':''}</td>
+        <td style="padding:8px 10px;text-align:center;">—</td>
+        <td style="padding:8px 10px;text-align:center;">${totalGrossLbs.toFixed(2)} lbs<br><span style="font-size:10px;">${totalGrossKg} kg</span></td>
+        <td style="padding:8px 10px;text-align:center;">${totalNetLbs.toFixed(2)} lbs<br><span style="font-size:10px;">${totalNetKg} kg</span></td>
+        <td style="padding:8px 10px;text-align:center;">${totalCbm.toFixed(4)} m³</td>
+        <td style="padding:8px 10px;"></td>
+        <td style="padding:8px 10px;"></td>
+      </tr>
+    </table>
+  </td></tr>`;
+
+  // Certification block — auto-builds from piece origins; custom text field overrides
+  const certCustomEl = document.getElementById('cert-custom-text');
+  let certBodyHtml;
+  if (certCustomEl && certCustomEl.value.trim()) {
+    certBodyHtml = escH(certCustomEl.value.trim());
+  } else {
+    const usedOrigins = [...new Set(pieces.map(p => (p.country_of_origin||'USA').toUpperCase().trim()).filter(Boolean))];
+    let originPhrase;
+    if (usedOrigins.length === 0 || (usedOrigins.length === 1 && usedOrigins[0] === 'USA')) {
+      originPhrase = 'the <strong>United States of America</strong>';
+    } else if (usedOrigins.length === 1) {
+      originPhrase = '<strong>' + escH(usedOrigins[0]) + '</strong>';
+    } else {
+      const arr = [...usedOrigins];
+      const last = arr.pop();
+      originPhrase = arr.map(o=>'<strong>'+escH(o)+'</strong>').join(', ') + ' and <strong>'+escH(last)+'</strong>';
+    }
+    certBodyHtml = 'We hereby certify that the goods described above were manufactured in ' + originPhrase + ' and that the particulars given are true and correct to the best of our knowledge and belief.';
+  }
+  const sigImgTag = sigDataUrl
+    ? `<img src="${sigDataUrl}" alt="Signature" style="height:44px;max-width:170px;display:block;margin:0 0 3px 0">`
+    : '';
+  const certHtml = `<tr><td colspan="100">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <tr>
+        <td style="width:60%;vertical-align:top;padding-right:14px;">
+          <div style="border:1px solid #ddd;border-radius:4px;padding:12px;">
+            <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:6px;">Certification</div>
+            <div style="font-size:11px;color:#444;line-height:1.6;">${certBodyHtml}</div>
+          </div>
+        </td>
+        <td style="vertical-align:top;">
+          <div style="border:1px solid #ddd;border-radius:4px;padding:12px;">
+            <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:6px;">Authorized Signatory</div>
+            ${sigImgTag}
+            <div style="font-weight:700;border-top:1px solid #333;padding-top:4px;margin-top:4px;">David W. Hanzal</div>
+            <div style="color:#666;">President, Technologies International, LLC</div>
+            <div style="color:#666;font-size:10px;margin-top:4px;">Date: ${today}</div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>`;
+
+  return `
+    <style>
+      @media print {
+        *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+        @page{size:letter;margin:0.45in 0.5in 0.65in 0.5in;}
+        body{font-family:Arial,sans-serif;font-size:11px;}
+        thead{display:table-header-group;}
+        tfoot{display:table-footer-group;}
+        tbody{display:table-row-group;}
+        .pieces-section{page-break-before:always;break-before:page;}
+      }
+      body{font-family:Arial,sans-serif;font-size:11px;margin:0;padding:20px;}
+    </style>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>${headerHtml}</thead>
+      <tfoot>${footerHtml}</tfoot>
+      <tbody>
+        ${partiesHtml}
+        ${goodsHtml}
+        ${piecesTableHtml}
+        ${certHtml}
+      </tbody>
+    </table>`;
+}
+
+async function getSignatureB64() {
+  const endpoints = [
+    '/portal/invoices/invoice-api.php',
+    '/portal/invoices/po-api.php',
+  ];
+  for (const url of endpoints) {
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'getSignature', auth_user: AUTH.user, auth_pass: AUTH.pass})
+      });
+      const j = await r.json();
+      if (j.success && j.dataUrl) return j.dataUrl;
+      if (j.success && j.url) return j.url;
+    } catch(e) {}
+  }
+  return 'https://ti-kitmeer.com/portal/admin/secure_assets/signature.png';
+}
+
+async function openPLWindow(autoPrint) {
+  const sig = await getSignatureB64();
+  const html    = buildPrintHTML(sig);
+  const plNum   = document.getElementById('pl-number').value || 'PackingList';
+  const today   = formatDocDate(document.getElementById('pl-date').value || new Date());
+  // @page margin CSS — the ONLY reliable page numbering in Chrome
+  // counter(page) / counter(pages) work natively in @page margin boxes
+  const safePL  = plNum.replace(/'/g, "\'");
+  const safeDate = today.replace(/'/g, "\'");
+  const pageStyle = `<style>
+@page {
+  size: letter;
+  margin: 0.45in 0.5in 0.42in 0.5in;
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages) "  ·  ${safePL}";
+    font-family: Arial, sans-serif;
+    font-size: 8px;
+    color: #888;
+    padding-top: 2px;
+  }
+}
+</style>`;
+  const fullHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + plNum + '</title>' + pageStyle + '</head><body style="margin:0;padding:0;font-family:Arial,sans-serif;">' + html + (autoPrint ? '<script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>' : '') + '</body></html>';
+  const blob = new Blob([fullHTML], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) { alert('Please allow popups for this site.'); return; }
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+function printPL()    { openPLWindow(true); }
+function downloadPDF(){ openPLWindow(true); }
+
+// ============================================================
+// UTILS
+// ============================================================
+function escH(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
