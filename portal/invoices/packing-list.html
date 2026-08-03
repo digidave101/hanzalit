@@ -141,10 +141,11 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0;color:var(--
             <div class="form-group"><label>Client PO #</label><input type="text" id="ph-po-num" readonly style="background:#e8f4f6;font-weight:700;"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>Client / Bill To</label><input type="text" id="ph-client-name" readonly style="background:#e8f4f6;"></div>
-            <div class="form-group"><label>Ship To</label><textarea id="ph-ship-to" rows="2" readonly style="background:#e8f4f6;"></textarea></div>
+            <div class="form-group"><label>Client / Bill To Name</label><input type="text" id="ph-client-name" readonly style="background:#e8f4f6;"></div>
+            <div class="form-group"><label>Consignee / Bill To Address <span style="color:#888;font-weight:400;">(prints on PL)</span></label><textarea id="ph-bill-to" rows="2" readonly style="background:#e8f4f6;"></textarea></div>
             <div class="form-group"><label>End User</label><textarea id="ph-end-user" rows="2" readonly style="background:#e8f4f6;"></textarea></div>
           </div>
+          <p style="font-size:11px;color:#666;margin:6px 0 0;">Ship To / delivery address is kept on the invoice only and is intentionally omitted from the Packing List.</p>
           <div class="form-row">
             <div class="form-group"><label>Incoterms</label><input type="text" id="ph-incoterms" readonly style="background:#e8f4f6;"></div>
             <div class="form-group"><label>Currency</label><input type="text" id="ph-currency" readonly style="background:#e8f4f6;"></div>
@@ -398,11 +399,16 @@ async function openInvoice(id) {
 
 function fillHeader(inv) {
   const fmt = (v) => v||'';
+  const name = (inv.client_name || '').trim();
+  const addr = (inv.client_addr || '').trim();
+  let billTo = '';
+  if (name && addr) billTo = addr.toUpperCase().indexOf(name.toUpperCase()) === 0 ? addr : (name + '\n' + addr);
+  else billTo = name || addr;
   document.getElementById('ph-inv-num').value    = fmt(inv.inv_number);
   document.getElementById('ph-inv-date').value   = inv.inv_date ? inv.inv_date.split('T')[0] : '';
   document.getElementById('ph-po-num').value     = fmt(inv.po_number);
   document.getElementById('ph-client-name').value= fmt(inv.client_name);
-  document.getElementById('ph-ship-to').value    = fmt(inv.ship_to);
+  document.getElementById('ph-bill-to').value    = fmt(billTo);
   document.getElementById('ph-end-user').value   = fmt(inv.end_user);
   document.getElementById('ph-incoterms').value  = fmt(inv.incoterms);
   document.getElementById('ph-currency').value   = fmt(inv.currency);
@@ -887,7 +893,17 @@ function buildPrintHTML() {
     </div>
   </td></tr>`;
 
-  // Parties
+  // Parties — Consignee / Bill To only (no Ship To / delivery warehouse address)
+  const billName = (inv.client_name || '').trim();
+  const billAddr = (inv.client_addr || '').trim();
+  let billToBlock = '';
+  if (billName && billAddr) {
+    billToBlock = billAddr.toUpperCase().indexOf(billName.toUpperCase()) === 0
+      ? billAddr
+      : (billName + '\n' + billAddr);
+  } else {
+    billToBlock = billName || billAddr || '';
+  }
   const partiesHtml = `<tr><td colspan="100" style="padding-bottom:14px;">
     <table style="width:100%;border-collapse:collapse;font-size:11px;">
       <tr>
@@ -900,8 +916,8 @@ function buildPrintHTML() {
         </td>
         <td style="width:33%;vertical-align:top;padding-right:10px;">
           <div style="background:#f5f5f5;border-radius:4px;padding:9px;">
-            <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:5px;">Consignee / Ship To</div>
-            <div style="white-space:pre-wrap;color:#333;">${escH(inv.ship_to||'')}</div>
+            <div style="font-size:10px;font-weight:700;color:#0a7b8a;text-transform:uppercase;margin-bottom:5px;">Consignee / Bill To</div>
+            <div style="white-space:pre-wrap;color:#333;">${escH(billToBlock||'—')}</div>
           </div>
         </td>
         <td style="width:33%;vertical-align:top;">

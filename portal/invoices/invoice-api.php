@@ -106,6 +106,10 @@ $need = [
     'pl_data'=>"LONGTEXT", 'client_addr'=>"TEXT", 'ship_to'=>"TEXT",
     'notes'=>"TEXT", 'line_items'=>"LONGTEXT", 'quote_number'=>"VARCHAR(100) DEFAULT ''",
     'manufacturer'=>"TEXT",
+    'freight_mode'=>"VARCHAR(20) DEFAULT 'ocean'",
+    'port_loading'=>"VARCHAR(255) DEFAULT ''",
+    'port_unloading'=>"VARCHAR(255) DEFAULT ''",
+    'type_of_move'=>"VARCHAR(255) DEFAULT ''",
 ];
 $cols = $pdo->query("SHOW COLUMNS FROM ti_invoices")->fetchAll(PDO::FETCH_COLUMN);
 $existing = array_map('strtolower', $cols);
@@ -343,7 +347,8 @@ case 'save_invoice':
         currency=?, notes=?, status=?, discount_pct=?,
         pay_method=?, bank_name=?, bank_acct_name=?,
         bank_aba=?, bank_acct=?, bank_swift=?, inv_email=?,
-        line_items=?, main_q_data=?, manufacturer=?
+        line_items=?, main_q_data=?, manufacturer=?,
+        freight_mode=?, port_loading=?, port_unloading=?, type_of_move=?
         WHERE id=?");
     $ok2 = $s->execute([
         $in['inv_number']        ?? '',
@@ -372,6 +377,10 @@ case 'save_invoice':
         $in['line_items']        ?? '[]',
         $in['main_q_data']       ?? '{}',
         $in['manufacturer']      ?? '',
+        $in['freight_mode']      ?? 'ocean',
+        $in['port_loading']      ?? '',
+        $in['port_unloading']    ?? '',
+        $in['type_of_move']      ?? '',
         $id
     ]);
     if (!$ok2) err('Save failed: '.implode(' ',$s->errorInfo()));

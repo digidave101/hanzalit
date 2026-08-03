@@ -160,11 +160,19 @@ function buildCOOHtml(inv, pl, sigDataUrl) {
   const marks = pieces.map(p => p.label || '').filter(Boolean).join(', ') || inv.inv_number || '—';
   const pcs = pieces.length || lineItems.reduce((s, it) => s + (parseInt(it.qty, 10) || 1), 0) || 1;
   const grossKg = totalGrossKg(pieces);
-  const portUnload = lastLine(inv.end_user) || lastLine(inv.ship_to) || '—';
+  const portUnload = lastLine(inv.end_user) || lastLine(inv.client_addr) || '—';
   const pointOrigin = inv.country_of_origin
     ? (inv.country_of_origin.toUpperCase().includes('USA') ? 'New York, New York, USA' : inv.country_of_origin)
     : 'New York, New York, USA';
-  const typeMove = inv.incoterms ? `${inv.incoterms} — Ocean/Air Freight` : 'Ocean Freight';
+  const mode = (inv.freight_mode === 'air' || /\bAIR\b|AIR FREIGHT/i.test(`${inv.type_of_move||''} ${inv.notes||''}`)) ? 'air' : 'ocean';
+  const typeMove = (inv.type_of_move || '').trim() || ((inv.incoterms || 'Ex Works') + ' - ' + (mode === 'air' ? 'Air Freight' : 'Ocean Freight'));
+  const portLoad = (inv.port_loading || '').trim() || (mode === 'air' ? 'New York Airport' : 'New York Port');
+  const portUnloadFinal = (inv.port_unloading || '').trim() || portUnload;
+  const billName = (inv.client_name || '').trim();
+  const billAddr = (inv.client_addr || '').trim();
+  let consignee = '';
+  if (billName && billAddr) consignee = billAddr.toUpperCase().indexOf(billName.toUpperCase()) === 0 ? billAddr : (billName + '\n' + billAddr);
+  else consignee = billName || billAddr || inv.client_name || '—';
   const fwdAgent = inv.carrier || '—';
   const certDate = ordinalDate(inv.inv_date || pl?.pl_date);
   const displayDate = fmtDate(inv.inv_date || pl?.pl_date);
@@ -205,21 +213,20 @@ function buildCOOHtml(inv, pl, sigDataUrl) {
     </div>
 
     <div class="coo-row">
-      <div class="coo-label">Ship To:</div>
-      <div class="coo-val">${mapped(inv.ship_to || inv.client_name || '—')}</div>
+      <div class="coo-label">Consignee / Bill To:</div>
+      <div class="coo-val">${mapped(consignee)}</div>
     </div>
 
     <div class="coo-row">
       <div class="coo-label">Point (State)<br>of Origin:</div>
       <div class="coo-val">${mapped(pointOrigin)}</div>
+      <div class="coo-label">Port of Loading:</div>
+      <div class="coo-val">${mapped(portLoad)}</div>
     </div>
 
     <div class="coo-row">
       <div class="coo-label">Port of Unloading:</div>
-      <div class="coo-val">${mapped(portUnload)}</div>
-    </div>
-
-    <div class="coo-row">
+      <div class="coo-val">${mapped(portUnloadFinal)}</div>
       <div class="coo-label">Type of Move:</div>
       <div class="coo-val">${mapped(typeMove)}</div>
     </div>

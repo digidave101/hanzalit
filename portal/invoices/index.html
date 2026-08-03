@@ -318,20 +318,24 @@ body { font-family: Arial, sans-serif; font-size: 13px; background: #f0f0f0; col
         <!-- Client / Ship-To -->
         <div class="form-section no-print">
           <h4>Parties</h4>
+          <p style="font-size:11px;color:#666;margin:0 0 10px;line-height:1.45;">
+            <strong>Bill To / Consignee</strong> prints on the Invoice, Packing List, and Certificate of Origin.
+            <strong>Ship To</strong> prints on the Invoice only (delivery / warehouse address) — it is <em>not</em> shown on the Packing List or Certificate of Origin.
+          </p>
           <div class="form-row">
             <div class="form-group">
-              <label>Bill To — Client Name</label>
-              <input type="text" id="f-client-name" placeholder="Saudi Aramco / Aramco Americas">
+              <label>Bill To / Consignee — Client Name</label>
+              <input type="text" id="f-client-name" placeholder="Edsolab Trading LLC">
             </div>
             <div class="form-group">
-              <label>Bill To — Address</label>
-              <textarea id="f-client-addr" rows="3" placeholder="Client billing address"></textarea>
+              <label>Bill To / Consignee — Address</label>
+              <textarea id="f-client-addr" rows="3" placeholder="Billing / consignee address (used on Packing List &amp; Certificate of Origin)"></textarea>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Ship To / Consignee</label>
-              <textarea id="f-ship-to" rows="3" placeholder="Shipping / consignee address"></textarea>
+              <label>Ship To — Delivery Address <span style="color:#888;font-weight:400;">(Invoice only)</span></label>
+              <textarea id="f-ship-to" rows="3" placeholder="Shipping / delivery / warehouse address"></textarea>
             </div>
             <div class="form-group">
               <label>End User (if different)</label>
@@ -360,6 +364,32 @@ body { font-family: Arial, sans-serif; font-size: 13px; background: #f0f0f0; col
                 <option value="SAR">SAR</option>
                 <option value="AED">AED</option>
               </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Freight Mode <span style="color:#888;font-weight:400;">(Certificate of Origin)</span></label>
+              <select id="f-freight-mode" onchange="onFreightFieldsChange(true)">
+                <option value="ocean">Ocean Freight</option>
+                <option value="air">Air Freight</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Port of Loading</label>
+              <input type="text" id="f-port-loading" placeholder="e.g. New York Airport" oninput="markUnsaved && markUnsaved()">
+            </div>
+            <div class="form-group">
+              <label>Port of Unloading</label>
+              <input type="text" id="f-port-unloading" placeholder="e.g. Dubai Airport" oninput="markUnsaved && markUnsaved()">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Type of Move</label>
+              <input type="text" id="f-type-of-move" placeholder="e.g. Exworks - Air Freight" oninput="markUnsaved && markUnsaved()">
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;">
+              <button type="button" class="btn" onclick="onFreightFieldsChange(true)" style="background:#e8f4f6;color:#065f6b;border:1px solid #b0d8df;">↻ Suggest ports from mode</button>
             </div>
           </div>
           <div class="form-row">
@@ -534,6 +564,103 @@ function markSaved() {
   document.getElementById('unsaved-bar').style.display = 'none';
 }
 
+const PORT_DEFAULTS = {
+  USA: { ocean: 'New York Port', air: 'New York Airport' },
+  UAE: { ocean: 'Dubai Port', air: 'Dubai Airport' },
+  SA:  { ocean: 'Jeddah Port', air: 'King Khalid Airport, Riyadh' },
+  KW:  { ocean: 'Shuwaikh Port', air: 'Kuwait Airport' },
+  QA:  { ocean: 'Doha Port', air: 'Hamad Airport' },
+  BH:  { ocean: 'Khalifa Port', air: 'Bahrain Airport' },
+  OM:  { ocean: 'Sohar Port', air: 'Muscat Airport' },
+  EG:  { ocean: 'Alexandria Port', air: 'Cairo Airport' },
+  JO:  { ocean: 'Aqaba Port', air: 'Queen Alia Airport' },
+  LB:  { ocean: 'Beirut Port', air: 'Beirut Airport' },
+  IQ:  { ocean: 'Umm Qasr Port', air: 'Baghdad Airport' },
+  MA:  { ocean: 'Casablanca Port', air: 'Casablanca Airport' },
+  IN:  { ocean: 'Mumbai Port', air: 'Mumbai Airport' },
+  PK:  { ocean: 'Karachi Port', air: 'Karachi Airport' },
+  UK:  { ocean: 'Felixstowe Port', air: 'Heathrow Airport' },
+};
+
+function normalizeCountryKeyInv(country) {
+  const c = String(country || '').toUpperCase().trim();
+  if (!c) return '';
+  if (c.includes('UAE') || c.includes('EMIRATES') || c === 'U.A.E.') return 'UAE';
+  if (c.includes('SAUDI') || c === 'KSA' || c.includes('KINGDOM OF SAUDI')) return 'SA';
+  if (c.includes('KUWAIT')) return 'KW';
+  if (c.includes('QATAR')) return 'QA';
+  if (c.includes('BAHRAIN')) return 'BH';
+  if (c.includes('OMAN')) return 'OM';
+  if (c.includes('EGYPT')) return 'EG';
+  if (c.includes('JORDAN')) return 'JO';
+  if (c.includes('LEBANON')) return 'LB';
+  if (c.includes('IRAQ')) return 'IQ';
+  if (c.includes('MOROCCO')) return 'MA';
+  if (c.includes('INDIA')) return 'IN';
+  if (c.includes('PAKISTAN')) return 'PK';
+  if (c.includes('UK') || c.includes('UNITED KINGDOM') || c.includes('ENGLAND')) return 'UK';
+  if (c.includes('USA') || c.includes('UNITED STATES') || c === 'US' || c === 'U.S.A.') return 'USA';
+  return c;
+}
+
+function guessDestCountryFromForm() {
+  const texts = [
+    document.getElementById('f-end-user')?.value || '',
+    document.getElementById('f-ship-to')?.value || '',
+    document.getElementById('f-client-addr')?.value || ''
+  ];
+  for (const t of texts) {
+    const lines = String(t).split('\n').map(l => l.trim()).filter(Boolean);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const key = normalizeCountryKeyInv(lines[i]);
+      if (key && PORT_DEFAULTS[key]) return key;
+      const parts = lines[i].split(',').map(p => p.trim());
+      if (parts.length) {
+        const last = parts[parts.length - 1];
+        const k2 = normalizeCountryKeyInv(last);
+        if (k2 && PORT_DEFAULTS[k2]) return k2;
+      }
+    }
+  }
+  return 'UAE';
+}
+
+function defaultPortFor(countryKey, mode) {
+  const entry = PORT_DEFAULTS[countryKey] || PORT_DEFAULTS.USA;
+  return (mode === 'air' ? entry.air : entry.ocean) || entry.ocean;
+}
+
+function defaultTypeOfMove(mode, incoterms) {
+  const inco = (incoterms || '').trim() || 'Ex Works';
+  return inco + ' - ' + (mode === 'air' ? 'Air Freight' : 'Ocean Freight');
+}
+
+/** Suggest freight mode / ports / type of move. force=true overwrites existing values. */
+function onFreightFieldsChange(force) {
+  const modeEl = document.getElementById('f-freight-mode');
+  const loadEl = document.getElementById('f-port-loading');
+  const unloadEl = document.getElementById('f-port-unloading');
+  const typeEl = document.getElementById('f-type-of-move');
+  const incoEl = document.getElementById('f-incoterms');
+  if (!modeEl || !loadEl || !unloadEl || !typeEl) return;
+  const mode = modeEl.value === 'air' ? 'air' : 'ocean';
+  const destKey = guessDestCountryFromForm();
+  if (force || !loadEl.value.trim()) loadEl.value = defaultPortFor('USA', mode);
+  if (force || !unloadEl.value.trim()) unloadEl.value = defaultPortFor(destKey || 'UAE', mode);
+  if (force || !typeEl.value.trim()) typeEl.value = defaultTypeOfMove(mode, incoEl ? incoEl.value : '');
+  if (force) markUnsaved();
+}
+
+function billToBlockFromInv(inv) {
+  const name = (inv.client_name || '').trim();
+  const addr = (inv.client_addr || '').trim();
+  if (name && addr) {
+    if (addr.toUpperCase().indexOf(name.toUpperCase()) === 0) return addr;
+    return name + '\n' + addr;
+  }
+  return name || addr || '';
+}
+
 // ============================================================
 // INIT
 // ============================================================
@@ -661,6 +788,15 @@ function fillEditor(inv) {
     document.getElementById('f-notes').value = inv.notes || '';
     document.getElementById('f-manufacturer').value = inv.manufacturer || '';
     document.getElementById('f-mfr-preset').value = '';
+    // Freight / COO shipping fields
+    const detectedAir = /\bAIR\b|AIRWAY|AWB|AIR FREIGHT|AIRFREIGHT/i.test(
+      `${inv.freight_mode || ''} ${inv.incoterms || ''} ${inv.carrier || ''} ${inv.type_of_move || ''} ${inv.notes || ''}`
+    );
+    document.getElementById('f-freight-mode').value = (inv.freight_mode === 'air' || (!inv.freight_mode && detectedAir)) ? 'air' : (inv.freight_mode || 'ocean');
+    document.getElementById('f-port-loading').value = inv.port_loading || '';
+    document.getElementById('f-port-unloading').value = inv.port_unloading || '';
+    document.getElementById('f-type-of-move').value = inv.type_of_move || '';
+    onFreightFieldsChange(false);
     resolveManufacturerAddress(inv.manufacturer || '');
     document.getElementById('f-pay-method').value = inv.pay_method || 'ACH / Wire Transfer';
     document.getElementById('f-bank-name').value = inv.bank_name || 'TD Bank, N.A.';
@@ -1068,6 +1204,10 @@ async function saveInvoice() {
     currency: document.getElementById('f-currency').value,
     notes: document.getElementById('f-notes').value,
     manufacturer: document.getElementById('f-manufacturer').value,
+    freight_mode: document.getElementById('f-freight-mode').value,
+    port_loading: document.getElementById('f-port-loading').value,
+    port_unloading: document.getElementById('f-port-unloading').value,
+    type_of_move: document.getElementById('f-type-of-move').value,
     status: document.getElementById('inv-status-select').value,
     discount_pct: parseFloat(document.getElementById('tot-discount-pct').value) || 0,
     pay_method: document.getElementById('f-pay-method').value,
@@ -1782,6 +1922,10 @@ function gatherCurrentData() {
     currency: document.getElementById('f-currency').value,
     notes: document.getElementById('f-notes').value,
     manufacturer: document.getElementById('f-manufacturer').value,
+    freight_mode: document.getElementById('f-freight-mode').value,
+    port_loading: document.getElementById('f-port-loading').value,
+    port_unloading: document.getElementById('f-port-unloading').value,
+    type_of_move: document.getElementById('f-type-of-move').value,
     pay_method: document.getElementById('f-pay-method').value,
     bank_name: document.getElementById('f-bank-name').value,
     bank_acct_name: document.getElementById('f-bank-acct-name').value,

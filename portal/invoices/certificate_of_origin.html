@@ -194,7 +194,7 @@ function normalizeCountryKey(country) {
 }
 
 const COUNTRY_PORTS = {
-  USA: { ocean: 'New York Port', air: 'JFK Airport' },
+  USA: { ocean: 'New York Port', air: 'New York Airport' },
   UAE: { ocean: 'Dubai Port', air: 'Dubai Airport' },
   SA:  { ocean: 'Jeddah Port', air: 'King Khalid Airport, Riyadh' },
   KW:  { ocean: 'Shuwaikh Port', air: 'Kuwait Airport' },
@@ -212,7 +212,8 @@ const COUNTRY_PORTS = {
 };
 
 function freightMode(inv) {
-  const text = `${inv.incoterms || ''} ${inv.carrier || ''} ${inv.notes || ''}`.toUpperCase();
+  if (inv.freight_mode === 'air' || inv.freight_mode === 'ocean') return inv.freight_mode;
+  const text = `${inv.incoterms || ''} ${inv.carrier || ''} ${inv.type_of_move || ''} ${inv.notes || ''}`.toUpperCase();
   if (/\bAIR\b|AIRWAY|AWB|AIR FREIGHT|AIRFREIGHT/.test(text)) return 'air';
   return 'ocean';
 }
@@ -220,13 +221,24 @@ function freightMode(inv) {
 function formatPort(country, mode) {
   const key = normalizeCountryKey(country);
   const entry = COUNTRY_PORTS[key];
-  const modeLabel = mode === 'air' ? 'Air' : 'Ocean';
-  if (entry) {
-    const portName = entry[mode] || entry.ocean;
-    return `${portName} — ${modeLabel}`;
-  }
+  if (entry) return entry[mode] || entry.ocean;
   const label = country || key || '—';
-  return `${label} Port — ${modeLabel}`;
+  return mode === 'air' ? `${label} Airport` : `${label} Port`;
+}
+
+function billToBlock(inv) {
+  const name = (inv.client_name || '').trim();
+  const addr = (inv.client_addr || '').trim();
+  if (name && addr) {
+    if (addr.toUpperCase().indexOf(name.toUpperCase()) === 0) return addr;
+    return name + '\n' + addr;
+  }
+  return name || addr || '';
+}
+
+function defaultTypeOfMove(inv, mode) {
+  const inco = (inv.incoterms || '').trim() || 'Ex Works';
+  return `${inco} - ${mode === 'air' ? 'Air Freight' : 'Ocean Freight'}`;
 }
 
 function in2cm(v) { return v ? (parseFloat(v) * 2.54).toFixed(1) : '—'; }
@@ -345,15 +357,15 @@ function buildPrintHTML(inv, pl, sigDataUrl) {
 
   const mode = freightMode(inv);
   const mfrCountry = extractCountryFromAddress(manufacturer) || inv.country_of_origin || 'USA';
-  const destCountry = extractCountryFromAddress(inv.end_user) || extractCountryFromAddress(inv.ship_to) || extractCountryFromAddress(inv.client_addr) || '';
+  const destCountry = extractCountryFromAddress(inv.end_user) || extractCountryFromAddress(inv.client_addr) || extractCountryFromAddress(inv.ship_to) || '';
 
   const pointOrigin = cityStateFromManufacturer(manufacturer) || mfrCountry || '—';
-  const portLoad = formatPort(mfrCountry, mode);
-  const portUnload = destCountry
-    ? formatPort(destCountry, mode)
-    : (lastLine(inv.end_user) || lastLine(inv.ship_to) || '—');
+  const portLoad = (inv.port_loading || '').trim() || formatPort(mfrCountry, mode);
+  const portUnload = (inv.port_unloading || '').trim()
+    || (destCountry ? formatPort(destCountry, mode) : (lastLine(inv.end_user) || lastLine(inv.client_addr) || '—'));
 
-  const typeMove = inv.incoterms ? `${inv.incoterms} — Ocean/Air Freight` : 'Ocean Freight';
+  const typeMove = (inv.type_of_move || '').trim() || defaultTypeOfMove(inv, mode);
+  const consigneeBillTo = billToBlock(inv) || inv.client_name || '—';
   const fwdAgent = inv.carrier || '—';
   const certDate = ordinalDate(inv.inv_date || pl?.pl_date);
   const today = fmtDate(inv.inv_date || pl?.pl_date);
@@ -413,7 +425,7 @@ function buildPrintHTML(inv, pl, sigDataUrl) {
       ${fieldRow('Shipper / Supplier<br>Name &amp; Address', TI_BLOCK)}
       ${fieldRow('Forwarding Agent<br>Name &amp; Address', nl2br(fwdAgent))}
       ${fieldRow('Exporter of Record', TI_BLOCK)}
-      ${fieldRow('Ship To', nl2br(inv.ship_to || inv.client_name || '—'))}
+      ${fieldRow('Consignee / Bill To', nl2br(consigneeBillTo))}
       ${fieldRow('Point (State) of Origin', esc(pointOrigin), 'Port of Loading', esc(portLoad))}
       ${fieldRow('Port of Unloading', esc(portUnload), 'Type of Move', esc(typeMove))}
     </table>
