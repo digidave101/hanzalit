@@ -59,6 +59,7 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0;color:var(--
   <div id="doc"></div>
 </div>
 
+<script src="/portal/invoices/doc-date.js"></script>
 <script>
 const AUTH = (() => {
   try {
@@ -132,16 +133,11 @@ function lastLine(text) {
 }
 
 function ordinalDate(dateStr) {
-  const d = new Date((dateStr || new Date().toISOString().split('T')[0]) + 'T12:00:00');
-  const day = d.getDate();
-  const suffix = (day > 3 && day < 21) ? 'th' : ['th','st','nd','rd'][day % 10 > 3 ? 0 : day % 10];
-  const month = d.toLocaleDateString('en-US', {month: 'long'}).toUpperCase();
-  return `${day}${suffix} DAY OF ${month}, ${d.getFullYear()}`;
+  return ordinalDocDate(dateStr);
 }
 
 function fmtDate(dateStr) {
-  return new Date((dateStr || new Date().toISOString().split('T')[0]) + 'T12:00:00')
-    .toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'});
+  return formatDocDate(dateStr || new Date());
 }
 
 function totalGrossKg(pieces) {

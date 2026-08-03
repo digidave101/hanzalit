@@ -44,6 +44,7 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0;color:var(--
   <div id="doc"></div>
 </div>
 
+<script src="/portal/invoices/doc-date.js"></script>
 <script>
 const AUTH = (() => {
   try {
@@ -310,16 +311,11 @@ function lastLine(text) {
 }
 
 function ordinalDate(dateStr) {
-  const d = new Date((dateStr || new Date().toISOString().split('T')[0]) + 'T12:00:00');
-  const day = d.getDate();
-  const suffix = (day > 3 && day < 21) ? 'th' : ['th','st','nd','rd'][day % 10 > 3 ? 0 : day % 10];
-  const month = d.toLocaleDateString('en-US', {month: 'long'}).toUpperCase();
-  return `${day}${suffix} DAY OF ${month}, ${d.getFullYear()}`;
+  return ordinalDocDate(dateStr);
 }
 
 function fmtDate(dateStr) {
-  return new Date((dateStr || new Date().toISOString().split('T')[0]) + 'T12:00:00')
-    .toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'});
+  return formatDocDate(dateStr || new Date());
 }
 
 const TI_BLOCK = `<strong>TECHNOLOGIES INTERNATIONAL, LLC</strong><br>
@@ -561,10 +557,29 @@ async function printCOO() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const invParam = new URLSearchParams(window.location.search).get('inv');
+  const params = new URLSearchParams(window.location.search);
+  const invParam = params.get('inv');
+  const isEmbed = params.get('embed') === '1';
+  if (isEmbed) {
+    const toolbar = document.getElementById('toolbar');
+    if (toolbar) toolbar.style.display = 'none';
+    document.body.style.background = '#fff';
+  }
   if (invParam) loadInvoice(parseInt(invParam, 10));
   else document.getElementById('status').textContent = 'No invoice selected — open from Invoice Manager';
 });
+
+/** Used by invoice Combined Pack — export print HTML once loaded */
+window.TI_GET_COMBINE_HTML = async function() {
+  if (!currentInv) return null;
+  // Wait briefly if still loading
+  for (let i = 0; i < 40 && !currentInv; i++) await new Promise(r => setTimeout(r, 250));
+  if (!currentInv) return null;
+  const sig = await getSignatureB64();
+  const html = buildPrintHTML(currentInv, currentPl, sig);
+  const label = (currentInv.inv_number || 'COO') + ' COO';
+  return { html, label, title: label };
+};
 </script>
 </body>
 </html>

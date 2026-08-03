@@ -275,6 +275,7 @@ body { font-family: Arial, sans-serif; font-size: 13px; background: #f0f0f0; col
         <button class="btn btn-save" onclick="saveInvoice()">💾 Save</button>
         <button class="btn btn-print" onclick="printInvoice()">🖨 Print</button>
         <button class="btn btn-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
+        <button class="btn" id="btn-combined-pack" onclick="downloadCombinedPack()" title="Invoice + Packing List + Certificate of Origin in one PDF. Page numbers reset for each document." style="background:#2c5282;color:white;">⬇ Combined Pack</button>
         <button class="btn" style="background:#0a7b8a22;color:#0a7b8a;" onclick="openHsModal()">🔍 HS Codes</button>
         <a class="btn" href="#" id="pl-link" target="_blank" style="background:#1a6b5a;color:white;text-decoration:none;">📦 Packing List</a>
         <a class="btn" href="#" id="coo-link" target="_blank" style="background:#8b6914;color:white;text-decoration:none;">📋 Cert. of Origin</a>
@@ -511,6 +512,7 @@ body { font-family: Arial, sans-serif; font-size: 13px; background: #f0f0f0; col
   <!-- This is populated by buildPrintArea() before printing -->
 </div>
 
+<script src="/portal/invoices/doc-date.js"></script>
 <script>
 // ============================================================
 // AUTH + GLOBALS
@@ -773,7 +775,7 @@ function fillEditor(inv) {
   try {
     document.getElementById('editor-title').textContent = inv.inv_number || 'Invoice';
     document.getElementById('f-inv-num').value = inv.inv_number || '';
-    document.getElementById('f-inv-date').value = inv.inv_date ? inv.inv_date.split('T')[0] : new Date().toISOString().split('T')[0];
+    document.getElementById('f-inv-date').value = toDateOnlyISO(inv.inv_date) || toDateOnlyISO(new Date());
     document.getElementById('f-po-num').value = inv.po_number || '';
     document.getElementById('f-quote-num').value = inv.quote_number || '';
     document.getElementById('f-payment-terms').value = inv.payment_terms || '';
@@ -1595,7 +1597,7 @@ function buildPrintArea(sigDataUrl) {
   const cur = inv.currency || 'USD';
   const discPct = parseFloat(document.getElementById('tot-discount-pct').value) || 0;
   const mqOn = document.getElementById('main-q-toggle').checked;
-  const today = new Date(inv.inv_date || new Date()).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const today = formatDocDate(inv.inv_date || new Date());
 
   // ── Build all line item rows ──────────────────────────────
   // Always show ALL items. If MQ is on, TI-MAIN-Q appears as item 1, then all 38 below.
@@ -1938,8 +1940,7 @@ function gatherCurrentData() {
 
 async function openPrintWindow(autoPrint) {
   const invNum = document.getElementById('f-inv-num').value || 'Invoice';
-  const invDateRaw = document.getElementById('f-inv-date').value || '';
-  const invDate = invDateRaw ? new Date(invDateRaw + 'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '';
+  const invDate = formatDocDate(document.getElementById('f-inv-date').value || '');
   const poNum  = document.getElementById('f-po-num').value || '';
   const sigDataUrl = await getSignatureB64();
   const printHTML = buildPrintArea(sigDataUrl);
@@ -1984,6 +1985,129 @@ ${autoPrint ? `<script>window.onload=function(){setTimeout(function(){window.pri
 
 async function printInvoice() { await openPrintWindow(true); }
 async function downloadPDF()  { await openPrintWindow(true); }
+
+// ============================================================
+// COMBINED SHIPPING PACK (Invoice + PL + COO)
+// UAE/Dubai Customs treat these as separate documents (Mirsal 2).
+// Page numbers reset per document — no continuous pack numbering.
+// ============================================================
+function loadEmbedDoc(url, docKey) {
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;height:1200px;opacity:0;pointer-events:none;';
+    iframe.setAttribute('aria-hidden', 'true');
+    let settled = false;
+    const cleanup = () => { try { iframe.remove(); } catch(e) {} };
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Timed out loading ' + docKey));
+    }, 45000);
+    iframe.onload = async () => {
+      try {
+        let payload = null;
+        for (let i = 0; i < 80; i++) {
+          const win = iframe.contentWindow;
+          if (win && typeof win.TI_GET_COMBINE_HTML === 'function') {
+            payload = await win.TI_GET_COMBINE_HTML();
+            if (payload && payload.html) break;
+          }
+          await new Promise(r => setTimeout(r, 250));
+        }
+        if (!payload || !payload.html) throw new Error('Could not export ' + docKey + ' HTML');
+        settled = true;
+        clearTimeout(timer);
+        cleanup();
+        resolve(payload);
+      } catch (e) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        cleanup();
+        reject(e);
+      }
+    };
+    iframe.onerror = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      cleanup();
+      reject(new Error('Failed to load ' + docKey));
+    };
+    document.body.appendChild(iframe);
+    iframe.src = url;
+  });
+}
+
+async function downloadCombinedPack() {
+  if (!currentInvoiceId) {
+    showToast('Open an invoice first.', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-combined-pack');
+  const prevLabel = btn ? btn.textContent : '';
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Building…'; }
+    if (typeof unsavedChanges !== 'undefined' && unsavedChanges) {
+      await saveInvoice();
+    }
+    const check = await api('get_invoice', { id: currentInvoiceId });
+    const inv = check.invoice || {};
+    let plData = inv.pl_data;
+    if (typeof plData === 'string') {
+      try { plData = JSON.parse(plData); } catch(e) { plData = null; }
+    }
+    if (!plData || (!plData.pieces && !plData.lineItems && !plData.pl_number && !plData.pl_date)) {
+      showToast('Save the Packing List first (Packing List → Save), then try Combined Pack again.', 'error');
+      return;
+    }
+
+    showToast('Building combined PDF (each doc keeps its own page numbers)…', 'success');
+    const sigDataUrl = await getSignatureB64();
+    const invHtml = buildPrintArea(sigDataUrl);
+    const invNum = document.getElementById('f-inv-num').value || inv.inv_number || 'Invoice';
+
+    const pl = await loadEmbedDoc('/portal/invoices/packing-list.html?inv=' + currentInvoiceId + '&embed=1', 'packing list');
+    const coo = await loadEmbedDoc('/portal/invoices/certificate_of_origin.html?inv=' + currentInvoiceId + '&embed=1', 'certificate of origin');
+
+    const filename = (invNum || 'Invoice').replace(/[^\w.\-]+/g, '_') + '_Shipping_Documents.pdf';
+    const r = await fetch('/portal/invoices/combine-shipping.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        auth_user: AUTH.user,
+        auth_pass: AUTH.pass,
+        filename,
+        docs: [
+          { html: invHtml, label: invNum },
+          { html: pl.html, label: pl.label || 'Packing List' },
+          { html: coo.html, label: coo.label || (invNum + ' COO') }
+        ]
+      })
+    });
+    const ctype = r.headers.get('Content-Type') || '';
+    if (!r.ok || ctype.includes('application/json')) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.error || ('Combine failed (' + r.status + ')'));
+    }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    showToast('Combined shipping pack downloaded.', 'success');
+  } catch (e) {
+    showToast(e.message || 'Combined pack failed', 'error');
+    console.error('[downloadCombinedPack]', e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = prevLabel || '⬇ Combined Pack'; }
+  }
+}
 
 // ============================================================
 // UTILS

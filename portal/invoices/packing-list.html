@@ -229,6 +229,7 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f0f0f0;color:var(--
 
 <div id="print-area" style="display:none;"></div>
 
+<script src="/portal/invoices/doc-date.js"></script>
 <script>
 // ============================================================
 // AUTH + GLOBALS
@@ -272,11 +273,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check for ?inv= param
   const urlParams = new URLSearchParams(window.location.search);
   const invParam = urlParams.get('inv');
+  const isEmbed = urlParams.get('embed') === '1';
+  if (isEmbed) {
+    document.body.style.overflow = 'hidden';
+    const app = document.getElementById('app');
+    if (app) app.style.visibility = 'hidden';
+  }
   ping();
   loadInvoices().then(() => {
     if (invParam) openInvoice(parseInt(invParam));
   });
 });
+
+/** Used by invoice Combined Pack — export print HTML once loaded */
+window.TI_GET_COMBINE_HTML = async function() {
+  if (!currentInvId || !currentInvData) return null;
+  const sig = await getSignatureB64();
+  const html = buildPrintHTML(sig);
+  const plNum = document.getElementById('pl-number')?.value || currentInvData.inv_number || 'Packing List';
+  return { html, label: plNum, title: plNum };
+};
 
 async function ping() {
   try {
@@ -359,7 +375,7 @@ async function openInvoice(id) {
       pieces = savedPl.pieces;
       lineItems = savedPl.lineItems || buildLineItemsFromInvoice(r.invoice);
       document.getElementById('pl-number').value = savedPl.pl_number || '';
-      document.getElementById('pl-date').value = savedPl.pl_date || new Date().toISOString().split('T')[0];
+      document.getElementById('pl-date').value = toDateOnlyISO(savedPl.pl_date) || toDateOnlyISO(new Date());
       document.getElementById('pl-shipment-ref').value = savedPl.shipment_ref || '';
       document.getElementById('pl-goods-desc').value = savedPl.goods_desc || '';
       document.getElementById('pl-ncm').value = savedPl.ncm || '';
@@ -387,7 +403,7 @@ async function openInvoice(id) {
         } catch(e2) { /* ignore */ }
       }
       lineItems = buildLineItemsFromInvoice(r.invoice);
-      document.getElementById('pl-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('pl-date').value = toDateOnlyISO(new Date());
       document.getElementById('pl-number').value = 'PL-' + (r.invoice.inv_number||'').replace('INV-','');
       document.getElementById('pl-goods-desc').value = '';
       document.getElementById('pl-ncm').value = savedPl.ncm || '9023.00.00';
@@ -427,7 +443,7 @@ function setPlConsigneeFromInvoice(which) {
 function fillHeader(inv) {
   const fmt = (v) => v||'';
   document.getElementById('ph-inv-num').value    = fmt(inv.inv_number);
-  document.getElementById('ph-inv-date').value   = inv.inv_date ? inv.inv_date.split('T')[0] : '';
+  document.getElementById('ph-inv-date').value   = inv.inv_date ? toDateOnlyISO(inv.inv_date) : '';
   document.getElementById('ph-po-num').value     = fmt(inv.po_number);
   document.getElementById('ph-client-name').value= fmt(inv.client_name);
   // Prefer saved PL override; otherwise default to invoice Bill To
@@ -851,7 +867,7 @@ async function savePL() {
 // ============================================================
 function buildPrintHTML(sigDataUrl) {
   const inv = currentInvData || {};
-  const today = new Date(document.getElementById('pl-date').value || new Date()).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const today = formatDocDate(document.getElementById('pl-date').value || new Date());
   const plNum = document.getElementById('pl-number').value || '';
   const poNum = inv.po_number || '';
   const goodsDesc = document.getElementById('pl-goods-desc').value || 'Technical training equipment and systems';
@@ -1140,7 +1156,7 @@ async function openPLWindow(autoPrint) {
   const sig = await getSignatureB64();
   const html    = buildPrintHTML(sig);
   const plNum   = document.getElementById('pl-number').value || 'PackingList';
-  const today   = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const today   = formatDocDate(document.getElementById('pl-date').value || new Date());
   // @page margin CSS — the ONLY reliable page numbering in Chrome
   // counter(page) / counter(pages) work natively in @page margin boxes
   const safePL  = plNum.replace(/'/g, "\'");
