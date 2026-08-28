@@ -1,12 +1,10 @@
 # hanzalit
 
-Personal website for weekend and gathering notes.
+Friday dinner update for the Poconos Game Plan at [davidhanzal.com/poconos](https://www.davidhanzal.com/poconos/).
 
-Open `index.html` locally, or serve the folder with any static host (GitHub Pages, Netlify, Hostinger).
+Drop `poconos/friday-dinner.html` and `poconos/images/friday-dinner.jpg` into the Hostinger `poconos` folder (or paste the Friday card into the existing plan).
 
-## Friday dinner
-
-Friday dinner plans have changed:
+Friday dinner is now:
 
 - Light snacks from Arthur Ave, compliments of Lauren
 - Homemade special-recipe burgers and potatoes on the grill
