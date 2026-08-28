@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Friday dinner — Poconos Game Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1e293b;
+      --muted: #64748b;
+      --paper: #fffdf6;
+      --card: #ffffff;
+      --teal: #0d9488;
+      --rose: #fb7185;
+      --rose-border: #fecdd3;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--paper);
+      font-family: Nunito, system-ui, sans-serif;
+      color: var(--ink);
+    }
+    main {
+      width: min(92vw, 720px);
+      margin: 32px auto 48px;
+    }
+    .card {
+      background: var(--card);
+      padding: 22px 20px 24px;
+      border-radius: 28px;
+      border: 4px solid var(--rose-border);
+      box-shadow: 0 10px 0 var(--rose);
+    }
+    .badge {
+      display: inline-block;
+      background: #fff1f2;
+      color: #be123c;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin: 0 0 10px;
+    }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    .lede { margin: 0 0 16px; color: var(--muted); }
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 20px;
+      display: block;
+      margin: 0 0 16px;
+    }
+    .menu { display: grid; gap: 12px; }
+    @media (min-width: 640px) { .menu { grid-template-columns: 1fr 1fr; } }
+    .item {
+      background: var(--paper);
+      border: 2px solid #fecdd3;
+      border-radius: 20px;
+      padding: 14px 16px;
+    }
+    .course {
+      display: block;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    strong { display: block; font-size: 17px; }
+    .note { display: block; color: var(--muted); margin-top: 4px; font-size: 14px; }
+    .closing { margin: 16px 0 0; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card" id="friday-dinner">
+      <p class="badge">Updated Friday dinner</p>
+      <h1>Friday dinner has changed</h1>
+      <p class="lede">Light snacks first, then burgers and potatoes on the grill.</p>
+      <img
+        src="images/friday-dinner.jpg"
+        alt="Burgers and potatoes on the grill with light snacks of bread, cheese, olives, and cured meats"
+        width="1536"
+        height="1024" />
+      <div class="menu">
+        <div class="item">
+          <span class="course">To start</span>
+          <strong>Light snacks from Arthur Ave</strong>
+          <span class="note">Compliments of Lauren</span>
+        </div>
+        <div class="item">
+          <span class="course">On the grill</span>
+          <strong>Homemade special-recipe burgers</strong>
+          <span class="note">With potatoes, cooked over the fire</span>
+        </div>
+      </div>
+      <p class="closing">The original Friday dinner plan is off — this is the new one.</p>
+    </section>
+  </main>
+</body>
+</html>
